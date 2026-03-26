@@ -1,0 +1,62 @@
+{
+  "skill_name": "prompt-audit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "审计提示词 test-prompt-bad.md",
+      "expected_output": "应触发全部 5 条 ERROR（E1-E5）、6 条 WARNING（W2/W3/W4/W6/W7/W8）、4 条 INFO",
+      "files": ["test-prompt-bad.md"],
+      "assertions": [
+        {"text": "报告包含 E1（过度强调）", "type": "contains", "value": "E1"},
+        {"text": "报告包含 E2（纯否定）", "type": "contains", "value": "E2"},
+        {"text": "报告包含 E3（否定缺原因）", "type": "contains", "value": "E3"},
+        {"text": "报告包含 E4（引号做分隔）", "type": "contains", "value": "E4"},
+        {"text": "报告包含 E5（固定思考步骤）", "type": "contains", "value": "E5"},
+        {"text": "ERROR 数量为 5", "type": "regex", "value": "ERROR.*5"},
+        {"text": "报告包含 W2（角色过重）", "type": "contains", "value": "W2"},
+        {"text": "报告包含 INFO 部分", "type": "contains", "value": "INFO"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "prompt audit skill-creator SKILL.md (Anthropic official)",
+      "expected_output": "应检出 E1（全大写强调）和 E2/E3（纯否定），不应误报 E5（原则列表非固定思考步骤）",
+      "files": [],
+      "assertions": [
+        {"text": "报告包含 E1", "type": "contains", "value": "E1"},
+        {"text": "报告包含 E2 或 E3", "type": "regex", "value": "E[23]"},
+        {"text": "E5 不作为 ERROR 报告", "type": "regex_not_match", "value": "#### E5.*Prescriptive thinking steps"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "审计提示词 prompt-audit/SKILL.md（自检）",
+      "expected_output": "零 ERROR，可接受少量边界 WARNING",
+      "files": ["SKILL.md"],
+      "assertions": [
+        {"text": "ERROR 数量为 0", "type": "regex", "value": "ERROR.*0"},
+        {"text": "报告包含 INFO 部分", "type": "contains", "value": "INFO"}
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "审计 doc-coauthoring SKILL.md（干净的官方 skill）",
+      "expected_output": "零 ERROR，零 WARNING（已验证为最干净的官方 skill）",
+      "files": [],
+      "assertions": [
+        {"text": "ERROR 数量为 0", "type": "regex", "value": "ERROR.*0"},
+        {"text": "WARNING 数量为 0", "type": "regex", "value": "WARNING.*0"}
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "帮我看看这个系统提示词有没有问题（隐式触发测试）",
+      "expected_output": "skill 应被触发，产出审计报告",
+      "files": [],
+      "assertions": [
+        {"text": "产出了审计报告格式", "type": "contains", "value": "Prompt Audit Report"},
+        {"text": "包含 Overview 部分", "type": "contains", "value": "Overview"}
+      ]
+    }
+  ]
+}
