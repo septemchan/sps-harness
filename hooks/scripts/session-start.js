@@ -17,7 +17,7 @@ try {
     if (content) {
       const lineCount = content.split('\n').filter(l => l.trim()).length;
       if (lineCount > 100) {
-        respond(`📊 ${lineCount} operations recorded. Run /learn to discover patterns.`);
+        respond(`${lineCount} operations recorded. Run /learn to discover patterns.`);
       }
     }
   }

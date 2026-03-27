@@ -22,8 +22,7 @@ function getTempDir() {
 }
 
 function hashCwd(cwd) {
-  // Simple hash for project-specific temp files
-  return crypto.createHash('md5').update(cwd || process.cwd()).digest('hex').slice(0, 8);
+  return crypto.createHash('sha256').update(cwd || process.cwd()).digest('hex').slice(0, 16);
 }
 
 function getSessionId(cwd) {
