@@ -1,135 +1,101 @@
 ---
 name: verification-loop
-description: 6-phase full-project verification pipeline. Use after completing a feature or before PR.
+description: Run a 6-phase full-project verification (build, types, lint, tests, security, diff review) to check overall project health. Trigger when the user wants a broad project-wide check before merging, releasing, or creating a PR, or after completing a feature/bugfix. Trigger phrases include "verify", "run checks", "audit the project", "check everything", "pre-PR check", "harness audit", "is the project ready", "帮我检查一下项目", "全面检查", "跑通吗", "有没有问题". Also trigger when the user expresses anxiety about breaking things after a large change and wants the whole codebase validated. Skip when the user is: reviewing a specific GitHub PR, writing or adding tests, setting up or configuring linters/tools, fixing a single known bug or type error, code migration, or investigating a specific CI pipeline failure.
 ---
 
 # Verification Loop
 
-You are a verification engineer. Run a 6-phase technical audit on the current project, report PASS/FAIL per phase with specific issues, and produce a summary.
+Run a 6-phase technical audit on the current project. Report PASS/FAIL/SKIP per phase, then act on the results: auto-fix trivial issues, report serious ones for the user to decide.
 
-## When to use
+This is a **full-project** pipeline that checks the entire codebase. For per-file incremental checks on staged changes, see the quality-gate hook instead.
 
-- After completing a feature or bug fix
-- Before creating a pull request
-- When the user says "verify", "audit the project", "run checks", "harness audit", or `/harness-audit`
+This skill complements Superpowers' verification-before-completion skill: that skill ensures you prove completion with evidence, this skill defines what evidence to collect.
 
-## Relationship to Superpowers
+## How to run
 
-Complements Superpowers' verification-before-completion skill. Superpowers ensures you prove completion with evidence. This skill specifies WHAT to check (6 technical phases).
+Execute all 6 phases in order. The ordering matters: each phase builds on confidence from the previous one. If a phase has no applicable tooling configured, report SKIP with the reason and move on.
 
-## Scope
+For each phase, detect the project's toolchain by inspecting config files (package.json, Cargo.toml, pyproject.toml, go.mod, etc.) and choose the appropriate command. A few common mappings are shown as examples, but trust your judgment for setups not listed here.
 
-This is a **full-project** pipeline. It checks the entire codebase, not just changed files. For per-file incremental checks on staged changes, see the quality-gate hook instead.
+Report only what the tools actually output. If a command fails or produces unexpected output, quote the real error message rather than paraphrasing or inferring.
 
-## Workflow
-
-Run all 6 phases in order. For each phase, detect the appropriate tool automatically, run the check, and report the result. If a phase is not applicable (e.g., no type checker configured), report SKIP with the reason.
-
----
+## Phases
 
 ### Phase 1: Build
 
-**Goal**: Can the project build successfully?
+Build comes first because nothing else matters if the project doesn't compile. A broken build means type checks, tests, and linting will all produce misleading results.
 
-**Detection and execution**:
-1. Look for build configuration files in the project root and determine the package manager / build tool:
-   - `package.json` with a `build` script → detect lock file (`pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, `package-lock.json` → npm) and run `{pm} run build`
-   - `Makefile` → `make`
-   - `Cargo.toml` → `cargo build`
-   - `pyproject.toml` or `setup.py` → `pip install -e .` (dry-run check) or `python -m build`
-   - `go.mod` → `go build ./...`
-2. If no build step is detected, report SKIP.
+Detect the build tool from project config and run it. Examples: `pnpm run build`, `cargo build`, `go build ./...`. If no build step exists, SKIP.
 
-**Report**: PASS if exit code 0, FAIL with the first error output otherwise.
-
----
+Report PASS if exit code 0. On FAIL, show the first error block.
 
 ### Phase 2: Type Check
 
-**Goal**: Are types correct across the project?
+Type errors caught here are cheaper to fix than bugs in production. Running this after a successful build ensures the compiler/bundler output is fresh.
 
-**Detection and execution**:
-1. Detect the type checker:
-   - `tsconfig.json` present → `npx tsc --noEmit`
-   - `mypy.ini`, `setup.cfg [mypy]`, or `pyproject.toml [tool.mypy]` → `mypy .`
-   - `pyrightconfig.json` or `pyproject.toml [tool.pyright]` → `pyright`
-2. If no type checker is detected, report SKIP.
+Detect the type checker (tsc, mypy, pyright, etc.) and run it. If none is configured, SKIP.
 
-**Report**: PASS if zero errors, FAIL with error count and the first 5 type errors.
-
----
+Report PASS if zero errors. On FAIL, show the error count and the first 5 errors.
 
 ### Phase 3: Lint
 
-**Goal**: Does the code meet style and quality standards?
+Lint catches style issues and code smells that type checkers miss. Running after type check means you won't waste time linting code that has fundamental type problems.
 
-**Detection and execution**:
-1. Detect the linter:
-   - `biome.json` or `biome.jsonc` → `npx biome check .`
-   - `.eslintrc.*` or `eslint.config.*` or `package.json` contains `eslint` → `npx eslint .`
-   - `ruff.toml` or `pyproject.toml [tool.ruff]` → `ruff check .`
-   - `Cargo.toml` → `cargo clippy`
-   - `.golangci.yml` → `golangci-lint run`
-2. If no linter is detected, report SKIP.
+Detect the linter (biome, eslint, ruff, clippy, golangci-lint, etc.) and run it. If none is configured, SKIP.
 
-**Report**: PASS if zero warnings/errors, FAIL with issue count and the first 5 issues.
-
----
+Report PASS if zero warnings/errors. On FAIL, show the issue count and first 5 issues.
 
 ### Phase 4: Test Suite
 
-**Goal**: Do tests pass? What is the coverage?
+Tests are the core confidence signal. They run after build/types/lint so that test failures reflect actual logic bugs, not compilation or style noise.
 
-**Detection and execution**:
-1. Detect the test runner:
-   - `package.json` with a `test` script → `{pm} run test` (add `-- --coverage` if vitest/jest)
-   - `pytest.ini`, `pyproject.toml [tool.pytest]`, or `conftest.py` → `pytest --tb=short`
-   - `Cargo.toml` → `cargo test`
-   - `go.mod` → `go test ./...`
-2. If no test runner or no test files are detected, report SKIP.
+Detect the test runner and run it with coverage if supported. If no test runner or no test files exist, SKIP.
 
-**Report**: PASS with test count and coverage percentage (if available), FAIL with failing test names and failure messages.
-
----
+Report PASS with test count and coverage percentage (if available). On FAIL, show failing test names and failure messages.
 
 ### Phase 5: Security Scan
 
-**Goal**: Are there known security vulnerabilities in dependencies?
+Dependency vulnerabilities are a release-blocker that's easy to miss. Checking after tests pass means you're scanning a project that actually works, not one with broken fundamentals.
 
-**Detection and execution**:
-1. Detect the audit tool:
-   - `package-lock.json` → `npm audit --omit=dev`
-   - `yarn.lock` → `yarn audit`
-   - `pnpm-lock.yaml` → `pnpm audit`
-   - `requirements.txt` or `pyproject.toml` → `pip audit` (if installed) or suggest running `/security-review`
-   - `Cargo.lock` → `cargo audit` (if installed)
-2. If no lock file is found or audit tool is unavailable, report SKIP and suggest running `/security-review` for a manual review.
+Detect the audit tool from lock files (`npm audit`, `pnpm audit`, `yarn audit`, `pip audit`, `cargo audit`, etc.). If no lock file exists or the audit tool isn't installed, SKIP.
 
-**Report**: PASS if zero vulnerabilities, FAIL with vulnerability count broken down by severity (critical/high/moderate/low).
-
----
+Report PASS if zero vulnerabilities. On FAIL, break down by severity (critical/high/moderate/low).
 
 ### Phase 6: Diff Review
 
-**Goal**: Are the uncommitted/staged changes reasonable and clean?
+This is the human-judgment phase. Automated tools can't catch scope creep or accidental deletions. Review comes last so it focuses only on changes that survived all previous checks.
 
-**Execution** (no detection needed, uses git directly):
-1. Run `git diff HEAD` (or `git diff` + `git diff --cached` if there are staged changes) to get all pending changes.
-2. If there is no diff (everything is committed), run `git diff HEAD~1` to review the last commit.
-3. Review the diff for:
-   - **Scope creep**: Changes to files unrelated to the stated task
-   - **Accidental deletions**: Removed code that looks unintentional (large block deletions without clear reason)
-   - **Debug code**: `console.log`, `debugger`, `print()` statements, `TODO`/`FIXME` left behind
-   - **Sensitive data**: Hardcoded secrets, API keys, credentials, `.env` values in code
-   - **Large generated files**: Committed build artifacts, lock file churn, minified bundles
+Run `git diff HEAD` to get pending changes. If everything is committed, use `git diff HEAD~1` for the last commit. Review for:
 
-**Report**: PASS if the diff is clean, FAIL with specific findings per category.
+- **Scope creep**: changes to files unrelated to the stated task
+- **Accidental deletions**: large block removals without clear reason
+- **Debug code**: leftover `console.log`, `debugger`, `print()`, `TODO`/`FIXME`
+- **Sensitive data**: hardcoded secrets, API keys, `.env` values in code
+- **Generated files**: build artifacts, minified bundles, excessive lock file churn
 
----
+Report PASS if clean. On FAIL, list specific findings by category.
+
+## After the phases: what to do with failures
+
+Not all failures are equal. Follow this triage:
+
+**Auto-fix** (do it, then re-run the phase to confirm):
+- Lint errors with available auto-fix (`--fix` flag)
+- Debug code left in the diff (remove `console.log`, `debugger`, etc.)
+- Formatting issues
+
+**Report and wait** (show the issue, ask the user before acting):
+- Build failures
+- Type errors
+- Failing tests
+- Security vulnerabilities (the user needs to decide: upgrade, ignore, or defer)
+- Scope creep or accidental deletions flagged in diff review
+
+After auto-fixing, re-run only the affected phases and update the summary.
 
 ## Output format
 
-After running all 6 phases, produce a summary table followed by details for any FAIL phases.
+Produce a summary table, then details for any FAIL phase:
 
 ```
 ## Verification Summary
@@ -138,18 +104,15 @@ After running all 6 phases, produce a summary table followed by details for any 
 |---|----------------|--------|-------------------------------|
 | 1 | Build          | PASS   |                               |
 | 2 | Type Check     | PASS   |                               |
-| 3 | Lint           | FAIL   | 3 errors (see below)          |
+| 3 | Lint           | PASS   | 3 errors auto-fixed           |
 | 4 | Test Suite     | PASS   | 42 tests, 87% coverage        |
 | 5 | Security Scan  | SKIP   | No lock file found            |
-| 6 | Diff Review    | FAIL   | 2 debug statements found      |
+| 6 | Diff Review    | FAIL   | 2 issues need your input      |
 
-### Phase 3: Lint — FAIL
-[specific issues here]
-
-### Phase 6: Diff Review — FAIL
+### Phase 6: Diff Review
 [specific findings here]
 ```
 
-If all phases PASS, end with: **All 6 phases passed. Project is ready for PR.**
+If all phases PASS (including after auto-fix): **All phases passed. Ready for PR.**
 
-If any phase FAILs, end with: **[N] phase(s) failed. Fix the issues above before proceeding.**
+If any phase needs user input: **[N] issue(s) need your decision. See details above.**

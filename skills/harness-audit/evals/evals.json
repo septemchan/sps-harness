@@ -1,0 +1,26 @@
+{
+  "skill_name": "harness-audit",
+  "evals": [
+    {
+      "id": 1,
+      "name": "audit-basic-project",
+      "prompt": "Run a harness audit on this project: C:\\tmp\\cleanup-test",
+      "expected_output": "A structured audit report with score, maturity level, per-dimension breakdown with individual check results, and top 3 improvement suggestions",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "init-empty-project",
+      "prompt": "Run a harness audit on this project: C:\\tmp\\empty-project-test",
+      "expected_output": "Score 0, L0 Manual level, switch to init mode with concrete directory structure and templates for each dimension",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "chinese-natural-audit",
+      "prompt": "帮我看看 C:\\tmp\\cleanup-test 这个项目的 .claude 配置健不健康，有哪些可以改进的地方",
+      "expected_output": "Same structured audit report as eval 1, triggered by natural Chinese language instead of explicit command",
+      "files": []
+    }
+  ]
+}

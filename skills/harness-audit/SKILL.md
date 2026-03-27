@@ -1,274 +1,166 @@
 ---
 name: harness-audit
-description: Evaluate .claude/ architecture maturity. 7 dimensions, 0-23 score, L0-L4 levels. Also guides new project initialization.
+description: >
+  Evaluate and score the maturity of a project's .claude/ directory architecture across 7 dimensions,
+  producing a deterministic score (0-23) and maturity level (L0-L4). For new projects without .claude/,
+  provides init guidance with concrete templates.
+  This skill assesses the current state rather than making changes.
+  Trigger on: "harness audit", "审计harness", "check my harness", "评估.claude成熟度",
+  "/harness-audit", "harness init", "初始化harness", ".claude健康检查", "harness体检",
+  "我的harness怎么样", "score my harness", "给harness打个分", "check harness health",
+  "how should I structure .claude/", "harness 成熟度", "harness 打分".
+  Also trigger when the user asks to evaluate, score, or assess their .claude/ configuration health.
+  Do not trigger when the user wants to create, modify, fix, or reorganize .claude/ files
+  (that is harness-creator's job), review individual prompt files (prompt-audit's job),
+  or configure settings.json hooks (update-config's job).
 ---
 
 # Harness Audit
 
-You are a harness architecture auditor. Evaluate the `.claude/` directory structure of the current project against 7 dimensions of maturity, produce a deterministic score (0-23), assign a maturity level (L0-L4), and provide actionable improvement guidance.
+You evaluate the `.claude/` directory architecture of the current project. The goal: give the user a clear, honest picture of how well their harness is set up, and practical guidance on what to improve next.
 
-## Dual purpose
+A well-structured harness makes Claude more reliable, consistent, and safe. A poorly structured one leads to ignored rules, redundant work, and drift over time. This audit measures the gap.
 
-This skill serves two modes depending on the current state of the project:
+## Two modes
 
-- **New project** (no `.claude/` directory or score 0): guide the user through creating each missing component with concrete templates and file structures.
-- **Existing project** (`.claude/` exists): score the current setup, highlight weak dimensions, and suggest specific cleanup or improvements.
+- **Audit** (`.claude/` exists): Score the current setup, show what's strong and what's weak, suggest the highest-impact improvements.
+- **Init** (no `.claude/` directory, or total score 0): Guide the user through creating each component. Read `references/init-templates.md` for concrete templates tailored to each dimension.
 
-## When to use
+## How to run the audit
 
-- When the user says "harness audit", "审计 harness", "check my harness", "评估 .claude 成熟度", or `/harness-audit`
-- When setting up a new project and the user asks "how should I structure .claude/", "初始化 harness", or "harness init"
-- When the user wants to know the health of their `.claude/` configuration
+1. Run the automated check script: `node <skill-path>/scripts/run-checks.js [project-root]`
+   - The script checks all 23 items and outputs a JSON report with pass/fail for each check.
+   - If the script fails (missing Node.js, permission issues), fall back to manual checks using the dimension definitions below.
+2. Read the JSON output and produce the human-readable report.
+3. For dimensions scoring 0, read `references/init-templates.md` and include tailored creation guidance.
 
-## Workflow
+## The 7 Dimensions
 
-1. Locate the `.claude/` directory in the project root. If it does not exist, report score 0 (L0 Manual) and switch to init guidance mode.
-2. Run each of the 7 dimensions below. For every check item, use deterministic methods only: file existence checks, line counts, content grep, directory listing. Use these methods (not LLM judgment) to determine pass/fail.
-3. Score each check item: 1 point if passing, 0 if not.
-4. Sum all points to get the total score (0-23).
-5. Determine the maturity level from the score table.
-6. Produce the report: total score, maturity level, per-dimension breakdown, and top 3 improvement suggestions ranked by impact.
-7. For new projects or dimensions scoring 0: output specific creation suggestions with file templates.
+### 1. Structure Completeness (0-4)
 
----
+A harness needs a basic skeleton. Without CLAUDE.md, rules, commands, and documentation, Claude is flying blind and every conversation starts from zero.
 
-### Dimension 1: Structure Completeness (0-4)
+| Check | Pass when |
+|-------|-----------|
+| 1.1 CLAUDE.md exists and is concise | `CLAUDE.md` (in `.claude/` or project root) exists with fewer than 100 lines |
+| 1.2 rules/ has content | `.claude/rules/` contains at least 1 `.md` file |
+| 1.3 agents/ or commands/ has content | `.claude/agents/` or `.claude/commands/` has at least 1 file |
+| 1.4 docs/ has spec or iterate-log | `.claude/docs/` contains `spec.md` or `iterate-log.md` |
 
-Checks whether the basic `.claude/` scaffolding is in place.
+### 2. Architecture Constraints (0-3)
 
-| # | Check | Method | Points |
-|---|-------|--------|--------|
-| 1.1 | CLAUDE.md exists and is <100 lines | Check file exists at `.claude/CLAUDE.md` or project-root `CLAUDE.md`; count lines with `wc -l`; pass if exists AND line count < 100 | +1 |
-| 1.2 | rules/ directory has content | Check `.claude/rules/` exists and contains at least 1 `.md` file | +1 |
-| 1.3 | agents/ or commands/ has content | Check `.claude/agents/` or `.claude/commands/` exists and contains at least 1 file | +1 |
-| 1.4 | docs/ has spec.md or iterate-log.md | Check `.claude/docs/` contains a file named `spec.md` or `iterate-log.md` (case-insensitive) | +1 |
+Rules without scope apply everywhere, which means they often conflict or dilute each other. Path-scoping, tool restrictions, and explicit tech-stack declarations give Claude the boundaries it needs to make good decisions in different parts of the codebase.
 
-**Init guidance** (if dimension scores 0):
-```
-Suggested structure:
-.claude/
-  CLAUDE.md              ← project-level instructions, keep under 100 lines
-  rules/                 ← scoped rules for different areas
-    code-style.md        ← coding conventions
-  commands/              ← slash commands
-    verify.md            ← verification command
-  docs/
-    spec.md              ← project specification
-    iterate-log.md       ← evolution log
-```
+| Check | Pass when |
+|-------|-----------|
+| 2.1 Path-scoped rules exist | Any file in `rules/` has YAML frontmatter with a `paths:` field |
+| 2.2 Tool restrictions on agents | Any file in `agents/` or `commands/` contains `allowedTools` |
+| 2.3 Tech stack declared | `CLAUDE.md` or `rules/` mentions tech stack, constraints, or lists technologies |
 
----
+### 3. Agent Design (0-3)
 
-### Dimension 2: Architecture Constraints (0-3)
+Agents are how you delegate specialized work. Without agent definitions, every task runs with full permissions. A read-only reviewer that can't write files is safer and more focused than a general-purpose agent with all tools available.
 
-Checks whether rules are scoped and constraints are declared.
+| Check | Pass when |
+|-------|-----------|
+| 3.1 Has agent definitions | `.claude/agents/` has at least 1 `.md` file |
+| 3.2 Has a read-only agent | At least 1 agent's `allowedTools` excludes `Write`, `Edit`, and destructive Bash |
+| 3.3 Agents have role descriptions | Agent files contain role-defining phrases ("You are", "Role:", "Scope:", "你是", "职责") |
 
-| # | Check | Method | Points |
-|---|-------|--------|--------|
-| 2.1 | rules/ has path-scoped rules (YAML frontmatter with paths field) | Grep for `^paths:` or `^- path:` in YAML frontmatter of files under `.claude/rules/` | +1 |
-| 2.2 | Agent definitions have allowedTools restrictions | Grep for `allowedTools` in files under `.claude/agents/` or `.claude/commands/` | +1 |
-| 2.3 | Clear tech stack/constraint declarations exist | Grep CLAUDE.md or rules/ files for keywords like "tech stack", "stack:", "constraints:", "技术栈", "dependencies", or a list of technologies | +1 |
+### 4. Quality Gates (0-4)
 
-**Init guidance** (if dimension scores 0):
-```yaml
-# Example path-scoped rule (.claude/rules/frontend.md):
----
-paths:
-  - "src/components/**"
-  - "src/pages/**"
----
-- Use TypeScript strict mode
-- Components must be functional, not class-based
-```
+Hooks are automated checkpoints that run without human intervention. They catch issues as they happen rather than after the fact. A harness without hooks relies entirely on the user remembering to check things, which doesn't scale.
 
----
+| Check | Pass when |
+|-------|-----------|
+| 4.1 Hooks configured | `.claude/settings.json` contains a `"hooks"` key (project-level, not plugin-provided) |
+| 4.2 PostToolUse hook | `settings.json` contains `PostToolUse` |
+| 4.3 Stop hook | `settings.json` contains `"Stop"` as a hook event type |
+| 4.4 Review skill present | `.claude/skills/` has a directory with "audit" or "review" in the name |
 
-### Dimension 3: Agent Design (0-3)
+### 5. Eval Coverage (0-3)
 
-Checks whether agent definitions exist and follow least-privilege principles.
+Rules and skills that aren't tested can silently break or drift. Eval definitions prove skills work as intended. Verification status in the iterate-log shows which rules have been confirmed effective. Source annotations trace where rules came from, so future maintainers can judge whether they're still relevant.
 
-| # | Check | Method | Points |
-|---|-------|--------|--------|
-| 3.1 | agents/ has at least 1 agent definition | Check `.claude/agents/` exists and contains at least 1 `.md` file | +1 |
-| 3.2 | Has read-only agent (allowedTools without Write/Edit) | Find at least 1 agent file under `.claude/agents/` whose `allowedTools` list does NOT include `Write`, `Edit`, or `Bash` write operations | +1 |
-| 3.3 | Agent definitions include role boundary descriptions | Grep agent files for role-defining phrases: "You are", "Role:", "Scope:", "你是", "职责" | +1 |
+| Check | Pass when |
+|-------|-----------|
+| 5.1 Skills have evals | Any skill folder contains `evals/` or files matching `*eval*`, `*test*` |
+| 5.2 Verified entries in iterate-log | `iterate-log.md` contains "Verified" or "已验证" |
+| 5.3 Rules have source annotations | Files in `rules/` contain "Source:", "来源:", "Ref:", or URL patterns |
 
-**Init guidance** (if dimension scores 0):
-```markdown
-# Example read-only agent (.claude/agents/reviewer.md):
----
-name: reviewer
-allowedTools:
-  - Read
-  - Glob
-  - Grep
-  - Bash(git diff*)
-  - Bash(git log*)
----
-You are a code reviewer. Analyze code quality and suggest improvements.
-You cannot modify files directly.
-```
+### 6. Evolution Tracking (0-3)
 
----
+A harness that doesn't record its own history can't learn from past mistakes. The iterate-log captures what changed and why. Instincts capture emerging patterns before they're promoted to rules. Escalation records show the team actively upgrades underperforming rules rather than tolerating drift.
 
-### Dimension 4: Quality Gates (0-4)
+| Check | Pass when |
+|-------|-----------|
+| 6.1 Iterate-log has meaningful content | `iterate-log.md` exists with more than 5 lines |
+| 6.2 Instincts directory has content | `.claude/instincts/` has at least 1 file |
+| 6.3 Escalation records exist | `iterate-log.md` mentions escalation terms ("escalat", "Instinct → Rule", "promoted", "升级") |
 
-Checks whether automated quality hooks are configured.
+### 7. Health Maintenance (0-3)
 
-| # | Check | Method | Points |
-|---|-------|--------|--------|
-| 4.1 | settings.json has hooks configuration | Check `.claude/settings.json` exists and contains `"hooks"` key. Note: hooks provided by installed plugins (e.g. in `hooks/hooks.json`) do not count here; this measures project-level configuration | +1 |
-| 4.2 | Has PostToolUse hook | Grep `.claude/settings.json` for `PostToolUse` (case-sensitive) | +1 |
-| 4.3 | Has Stop hook | Grep `.claude/settings.json` for `"Stop"` (as a hook event type) | +1 |
-| 4.4 | Has prompt-audit or equivalent review skill | Check `.claude/skills/` for a directory named `prompt-audit`, `code-review`, or similar; or grep skills for "audit" or "review" in skill names | +1 |
+Even a well-built harness degrades over time. Rules bloat, contradictions creep in, documentation goes stale. If a rule file is 500 lines long, Claude may not attend to all of it. If two rules contradict each other, behavior becomes unpredictable.
 
-**Init guidance** (if dimension scores 0):
-```jsonc
-// Example .claude/settings.json with hooks:
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "command": "echo 'File modified: $TOOL_INPUT_PATH'"
-      }
-    ],
-    "Stop": [
-      {
-        "command": "echo 'Task completed. Review changes before committing.'"
-      }
-    ]
-  }
-}
-```
+| Check | Pass when |
+|-------|-----------|
+| 7.1 No oversized rule files | Every file in `rules/` is under 300 lines |
+| 7.2 No obvious contradictions | No duplicate or conflicting rule headings across `rules/` files. Conservative grep-based detection only — if uncertain, pass |
+| 7.3 Docs are current | Every file in `docs/` was committed within the last 90 days (use `git log`, not filesystem mtime) |
 
----
+## Maturity Levels
 
-### Dimension 5: Eval Coverage (0-3)
-
-Checks whether skills are tested and rules are traceable.
-
-| # | Check | Method | Points |
-|---|-------|--------|--------|
-| 5.1 | Skills have eval definitions or test cases | Check for `evals/` directories inside any skill folder, or files matching `*eval*`, `*test*` under `.claude/skills/` | +1 |
-| 5.2 | iterate-log has Verified status records | Grep `.claude/docs/iterate-log.md` for "Verified", "verified", "VERIFIED", or "已验证" | +1 |
-| 5.3 | Rules have source annotations | Grep files in `.claude/rules/` for source markers: "Source:", "来源:", "Ref:", "Reference:", or URL patterns (`http://`, `https://`) | +1 |
-
-**Init guidance** (if dimension scores 0):
-```
-Suggested additions:
-- Add evals/ directory to each skill with test inputs and expected outputs
-- In iterate-log.md, mark tested rules with "Status: Verified"
-- In each rule file, add "Source:" annotation explaining where the rule came from
-```
-
----
-
-### Dimension 6: Evolution Tracking (0-3)
-
-Checks whether the harness tracks its own evolution over time.
-
-| # | Check | Method | Points |
-|---|-------|--------|--------|
-| 6.1 | iterate-log.md exists with content | Check `.claude/docs/iterate-log.md` exists and has more than 5 lines of content | +1 |
-| 6.2 | instincts/ directory has content | Check `.claude/instincts/` exists and contains at least 1 file | +1 |
-| 6.3 | iterate-log has escalation chain records | Grep `.claude/docs/iterate-log.md` for escalation-related terms: "escalat", "升级", "Instinct → Rule", "instinct → rule", "promoted", "提升" | +1 |
-
-**Init guidance** (if dimension scores 0):
-```markdown
-<!-- Example .claude/docs/iterate-log.md -->
-# Iterate Log
-
-## 2026-03-26
-- **Added**: code-style rule for consistent naming
-- **Source**: manual observation during review
-- **Status**: Verified
-- **Escalation**: Instinct → Rule (promoted after 3 consistent occurrences)
-```
-
----
-
-### Dimension 7: Health Maintenance (0-3)
-
-Checks whether the harness stays clean and current.
-
-| # | Check | Method | Points |
-|---|-------|--------|--------|
-| 7.1 | No single rule file exceeds 300 lines | Count lines in each file under `.claude/rules/`; pass if ALL files are under 300 lines | +1 |
-| 7.2 | No obvious contradictions between rules | Grep all rule files for contradiction patterns: same topic with opposing directives (e.g., one file says "use semicolons" and another says "no semicolons"). Check for files with identical heading names but different content. Pass if no duplicated or conflicting rule headings found | +1 |
-| 7.3 | docs/ has no files >90 days without update | Run `git log -1 --format=%ci -- <file>` for each file in `.claude/docs/`; pass if all files were committed within the last 90 days. Use git history (not file mtime, which resets on clone) | +1 |
-
-**Init guidance** (if dimension scores 0):
-```
-Maintenance practices:
-- Keep each rule file focused and under 300 lines; split large files by topic
-- Review rules quarterly to catch contradictions
-- Update docs/ files at least every 90 days or remove stale ones
-```
-
----
-
-## Maturity levels
-
-| Score | Level | Meaning |
-|-------|-------|---------|
-| 0-5 | L0 Manual | Basically no harness |
-| 6-10 | L1 Basic | Basic structure exists |
-| 11-15 | L2 Guided | Has constraints and review |
-| 16-19 | L3 Systematic | Has evolution and learning |
-| 20-23 | L4 Mature | Complete closed loop |
-
----
+| Score | Level | What it means |
+|-------|-------|---------------|
+| 0-5 | L0 Manual | Essentially no harness. Claude works from scratch each time. |
+| 6-10 | L1 Basic | Structure exists but lacks constraints and automation. |
+| 11-15 | L2 Guided | Has constraints and review. Claude follows rules but doesn't learn. |
+| 16-19 | L3 Systematic | Tracks evolution and learns from past iterations. |
+| 20-23 | L4 Mature | Complete closed loop: testing, escalation, and maintenance. |
 
 ## Output format
 
-**For existing projects (score > 0):**
+**Audit mode** (score > 0):
 
-<example title="existing project report">
+```markdown
 ## Harness Audit Report
 
-**Project**: [project name]
-**Score**: [N]/23 — [Level] ([Level meaning])
-
-**Per-dimension breakdown**
+**Project**: [name]
+**Score**: [N]/23 — [Level] ([meaning])
 
 | # | Dimension | Score | Detail |
 |---|-----------|-------|--------|
 | 1 | Structure Completeness | 3/4 | Missing: docs/spec.md |
 | 2 | Architecture Constraints | 1/3 | Missing: path-scoped rules, allowedTools |
-| 3 | Agent Design | 0/3 | No agents/ directory |
-| 4 | Quality Gates | 2/4 | Missing: Stop hook, review skill |
-| 5 | Eval Coverage | 0/3 | No evals or annotations |
-| 6 | Evolution Tracking | 1/3 | Missing: instincts/, escalation records |
-| 7 | Health Maintenance | 2/3 | 1 rule file exceeds 300 lines |
+| ... | ... | ... | ... |
 
-**Top 3 improvements**
+**Top 3 improvements** (ranked by impact):
 
-1. **[Dimension name]**: [specific action to take]
-2. **[Dimension name]**: [specific action to take]
-3. **[Dimension name]**: [specific action to take]
-</example>
+1. **[Dimension]**: [specific action to take]
+2. **[Dimension]**: [specific action to take]
+3. **[Dimension]**: [specific action to take]
+```
 
-**For new projects (score 0):**
+Report every individual check result, not just dimension totals.
 
-<example title="new project init guide">
+After the structured report, add a **Diagnostic observations** section. This is where you go beyond the checklist and look at the harness with fresh eyes. The 23 checks catch structural issues, but some of the most valuable findings are things no checklist covers: rules that contradict each other in subtle ways, CLAUDE.md content that duplicates what's already in rules/, naming patterns that suggest copy-paste errors, iterate-log entries that reveal a recurring problem nobody has escalated, negative directives that could be rewritten as positive ones. Read the actual content of the files, not just whether they exist, and share what you notice.
+
+**Init mode** (score 0):
+
+```markdown
 ## Harness Init Guide
 
-**Project**: [project name]
+**Project**: [name]
 **Current state**: No .claude/ directory found
 
-**Recommended setup**
+[Full suggested directory tree, then walk through each
+dimension's init guidance from references/init-templates.md,
+tailored to the project's detected tech stack and structure.]
+```
 
-[Output the full suggested directory tree, then walk through
-each dimension's init guidance from above, tailored to the
-project's detected tech stack and structure.]
-</example>
+## Bundled resources
 
----
-
-## Constraints
-
-- Every check must be deterministic: file existence, line counts, content grep, directory listing. Pass/fail decisions come from these methods, not from LLM judgment.
-- Report every individual check item's result, not just dimension totals.
-- When suggesting improvements, prioritize dimensions with the lowest scores and highest impact.
-- For check 7.2 (contradictions), use a conservative approach: only flag clear textual contradictions found via grep, not semantic analysis. If uncertain, pass the check.
+| Resource | When to use |
+|----------|-------------|
+| `scripts/run-checks.js` | Always — run first to get the raw scores |
+| `references/init-templates.md` | When any dimension scores 0 or in full init mode |

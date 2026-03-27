@@ -1,0 +1,38 @@
+{
+  "skill_name": "strategic-compact",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "你正在帮用户做一个认证系统。你们刚讨论完方案，plan 已经写好了存在 plan.md 里，接下来要开始写代码。这时收到系统提示：'Context is getting long. If Claude starts forgetting steps, run /save-compact.' 请处理这个情况。",
+      "expected_output": "判断当前是逻辑边界，执行 compact 流程",
+      "assertions": [
+        {"text": "boundary-recognized: 明确识别当前是逻辑边界（方案讨论完、准备写代码）", "type": "qualitative"},
+        {"text": "state-file-created: 创建了 .compact/state-feat-auth.md（用分支名）", "type": "qualitative"},
+        {"text": "state-has-structure: 状态文件包含 current task、progress、key decisions、working files", "type": "qualitative"},
+        {"text": "mentions-todowrite: 提到或执行了更新 TodoWrite", "type": "qualitative"},
+        {"text": "mentions-commit-stash: 提到检查/提交/暂存未提交的工作", "type": "qualitative"}
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "你正在帮用户调试一个数据库连接的 bug。你已经排查了配置文件和环境变量，目前在追踪连接池的行为，还没找到根因。这时收到系统提示：'Context is getting long. If Claude starts forgetting steps, run /save-compact.' 请处理这个情况。",
+      "expected_output": "判断当前不是逻辑边界，暂缓 compact",
+      "assertions": [
+        {"text": "boundary-rejected: 明确判断当前不是边界（正在调试，没找到根因）", "type": "qualitative"},
+        {"text": "defers-compact: 明确表示会等到合适的边界再 compact", "type": "qualitative"},
+        {"text": "no-premature-state-file: 没有立刻创建状态文件或执行 compact", "type": "qualitative"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "上下文刚刚被压缩过。项目里有一个 .compact/state-main.md 文件。请恢复工作状态。",
+      "expected_output": "按恢复流程操作：读状态文件、读工作文件、确认后继续",
+      "assertions": [
+        {"text": "reads-state-file: 第一步读了 .compact/state-main.md", "type": "qualitative"},
+        {"text": "reads-working-files: 读取了状态文件中提到的具体工作文件", "type": "qualitative"},
+        {"text": "confirms-before-resuming: 恢复后跟用户确认再继续，没有直接开始干活", "type": "qualitative"},
+        {"text": "no-broad-exploration: 没有大范围探索代码库，只读状态文件提到的文件", "type": "qualitative"}
+      ]
+    }
+  ]
+}

@@ -1,82 +1,61 @@
 ---
 name: strategic-compact
-description: Context budget management. Compress at logical boundaries, preserve key state across compaction.
+description: Guide context compaction so critical state survives and work resumes seamlessly. Use when the suggest-compact hook fires, the user runs /save-compact, context feels long, or you notice yourself forgetting earlier conversation details. Also use after a context reset to recover state.
 ---
 
 # Strategic Compact
 
-You are a context budget manager. When a conversation grows long, guide the compaction process so that critical state survives and work can resume seamlessly after context reset.
+When a conversation runs long, Claude Code compresses earlier messages to free up context. The compression preserves files on disk but destroys conversation memory: your reasoning, the user's verbal decisions, search results, the architecture understanding you built up. Without preparation, you wake up after compaction not knowing what you were doing or why.
+
+This skill ensures you save that context before compaction and recover it after.
 
 ## When to compact
 
-Compact at **logical boundaries**, not in the middle of active work.
+Compact at **logical boundaries**, moments where "what's done" and "what's next" are cleanly separable:
 
-| Boundary | Example | Safe to compact? |
-|----------|---------|------------------|
-| Phase transition | Brainstorming done, plan ready | Yes |
-| Plan → implementation | Design written, about to start coding | Yes |
-| Chunk completed | Feature finished and tested, moving to next | Yes |
-| Mid-implementation | Halfway through a function or file | No |
-| Debugging | Actively tracing a bug, haven't found root cause | No |
-| Waiting for user input | Asked a question, user hasn't answered | No |
+- Brainstorming finished, plan is written
+- Design done, about to start coding
+- A feature is complete and tested, moving to the next
 
-**Rule of thumb**: if you can summarize "what's done" and "what's next" as clean, separate items, it's a good boundary.
+Don't compact when you're halfway through implementing something, actively debugging without a root cause, or waiting for the user to answer a question. If the suggest-compact reminder fires and you're not at a boundary, acknowledge it and compact at the next one.
 
-## What survives compaction (no need to save)
+## What survives (no action needed)
 
-- `CLAUDE.md` and `.claude/rules/` files
-- TodoWrite state
-- All files on disk (source code, configs, docs)
-- Git history and `.claude/settings.json`
+`CLAUDE.md`, `.claude/rules/`, TodoWrite state, all files on disk, git history, `.claude/settings.json`. These persist automatically.
 
-## What's lost in compaction (must save before compact)
+## Before compacting
 
-- Intermediate reasoning and analysis
-- File contents held in memory
-- Conversation history and verbal decisions
-- Exploration results (grep/glob searches, error outputs)
-- Architecture understanding built during the session
-- Uncommitted decisions ("user said approach B, not A")
+Everything only in your head will be lost: intermediate reasoning, verbal decisions ("user said approach B, not A"), search results, your understanding of how the code fits together. If you don't write these down, the post-compaction Claude starts from scratch.
 
-## Pre-compact checklist
-
-1. **Save state to file** at `PWF/compact-state.md`: current task, progress, key decisions, working files, open questions, next steps.
-2. **Commit or stash dirty work**: uncommitted meaningful progress should be committed (even as WIP) or noted in the state file.
-3. **Update TodoWrite**: mark completed items done, ensure in-progress item reflects actual status.
-4. **Record unwritten findings**: any important discoveries (bug patterns, API quirks, constraints) not yet in files go into the state file.
-
-## Post-compact recovery
-
-After compaction, restore working context in this order:
-
-1. Read `PWF/compact-state.md` to understand where you left off
-2. Read TodoWrite to see the task list and current progress
-3. Read the specific files mentioned in the state file to rebuild working context
-4. Confirm the plan with the user before resuming work
-
-Focus on the files listed in the state file rather than re-exploring broadly.
-
-## Hooks and commands
-
-- **suggest-compact hook** fires at ~50 tool calls. When it fires, check if you're at a logical boundary. If yes, suggest compacting. If no, acknowledge and compact at the next boundary.
-- **/save-compact command** triggers this skill directly. Follow the pre-compact checklist, then run Claude Code's built-in /compact.
-
-## State file template
-
-Use this structure for `PWF/compact-state.md`:
+**1. Save state** to `.compact/state-{branch}.md` (use the current git branch name, so multiple sessions on different branches don't overwrite each other):
 
 ```markdown
-# Compact State — [date]
+# Compact State — {date}
 ## Current task
 [One-line summary]
 ## Progress
-- [x] Done step
-- [ ] Current step (details)
+- [x] Completed step
+- [ ] Current step (where exactly you left off)
 - [ ] Next step
 ## Key decisions
-- [Decision not recorded elsewhere]
+- [Decisions made in conversation but not yet in code or docs]
 ## Working files
-- `path/to/file` — [why it matters]
+- `path/to/file` — [what you were doing with it]
 ## Open questions
 - [Unresolved items]
 ```
+
+**2. Update TodoWrite** to reflect actual progress.
+
+**3. Commit or stash** meaningful uncommitted work, even as a WIP commit.
+
+## After compaction
+
+1. Read `.compact/state-{branch}.md` to understand where you left off
+2. Check TodoWrite for the task list
+3. Read the specific files mentioned in the state file (don't re-explore the whole codebase)
+4. Confirm with the user before resuming
+
+## Housekeeping
+
+Add `.compact/` to `.gitignore`. These files are temporary session state, not project artifacts.
