@@ -18,7 +18,8 @@ This is NOT a replacement for Superpowers. It provides no Planner, no Generator,
 ## Installation
 
 ```
-/plugin install gh:SEPTEM/superpowers-harness
+claude plugins marketplace add septemchan/superpowers-harness
+claude plugins install superpowers-harness
 ```
 
 ## Components
@@ -53,5 +54,3 @@ Works alongside:
 
 - **Superpowers** — Planner + Generator + Evaluator agents
 - **PM Skills** — `/discover` and `/write-prd` for requirements
-- **OpenSpec** — specification-driven development
-- **PWF** — deep architecture diagnostics
