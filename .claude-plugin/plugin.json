@@ -2,5 +2,7 @@
   "name": "superpowers-harness",
   "version": "0.1.0",
   "description": "Harness Engineering companion for Superpowers. Adds automated quality checks, security review, learning, and health assessment.",
-  "author": "SEPTEM"
+  "author": {
+    "name": "SEPTEM"
+  }
 }
