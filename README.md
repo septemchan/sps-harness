@@ -17,10 +17,19 @@ This is NOT a replacement for Superpowers. It provides no Planner, no Generator,
 
 ## Installation
 
-```
+Requires [Claude Code](https://claude.ai/code) (Anthropic's CLI for Claude).
+
+Run these two commands in your terminal:
+
+```bash
+# Step 1: Register this repo as a plugin source
 claude plugins marketplace add septemchan/superpowers-harness
+
+# Step 2: Install the plugin
 claude plugins install superpowers-harness
 ```
+
+Restart Claude Code after installation. The plugin loads globally — all projects get the hooks, commands, and rules automatically.
 
 ## Components
 
