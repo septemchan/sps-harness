@@ -2,8 +2,9 @@
 
 Route to the right tool at each stage:
 
-### 1. New Project (audit-driven)
-- No .claude/ directory → run /harness-audit for setup guidance
+### 1. New Project
+- Has design docs but no .claude/ → run /harvest to auto-generate CLAUDE.md
+- No design docs and no .claude/ → run /harness-audit for manual setup guidance
 - Has .claude/ → skip to relevant stage
 
 ### 2. Requirements
@@ -24,8 +25,10 @@ Route to the right tool at each stage:
 - Periodic health check → /harness-audit
 
 ### 5. Quality Assurance (automatic)
-- Code edited → quality-gate hook (file-level lint)
+- Code edited → auto-format hook (formatter) → typecheck hook (tsc) → quality-gate hook (linter)
 - .claude/ .md edited → quality-gate hook (prompt-audit reminder)
+- git commit attempted → commit-guard hook (message format + console.log + secret scan)
+- git commit --no-verify attempted → block-no-verify hook (blocked)
 - Session ending → completion-guard hook (security check)
 - ~50 tool calls → suggest-compact hook
 - All operations → observe hook (recording)
