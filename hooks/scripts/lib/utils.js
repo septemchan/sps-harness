@@ -43,7 +43,7 @@ function ensureDir(dir) {
 }
 
 function log(msg) {
-  process.stderr.write(`[superpowers-harness] ${msg}\n`);
+  process.stderr.write(`[sps-harness] ${msg}\n`);
 }
 
 function respond(message) {

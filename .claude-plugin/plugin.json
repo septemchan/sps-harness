@@ -1,5 +1,5 @@
 {
-  "name": "superpowers-harness",
+  "name": "sps-harness",
   "version": "0.2.0",
   "description": "Harness Engineering companion for Superpowers. Adds automated quality checks, security review, learning, and health assessment.",
   "author": {

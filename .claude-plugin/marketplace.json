@@ -1,12 +1,12 @@
 {
-  "name": "superpowers-harness",
+  "name": "sps-harness",
   "description": "Harness Engineering companion for Superpowers",
   "owner": {
     "name": "SEPTEM"
   },
   "plugins": [
     {
-      "name": "superpowers-harness",
+      "name": "sps-harness",
       "description": "Harness Engineering companion for Superpowers. Adds automated quality checks, security review, learning, and health assessment.",
       "version": "0.2.0",
       "source": "./",
