@@ -24,7 +24,7 @@ try {
   fs.writeFileSync(counterFile, JSON.stringify(data));
 
   if (data.count === THRESHOLD || (data.count > THRESHOLD && (data.count - THRESHOLD) % REMIND_INTERVAL === 0)) {
-    respond('Context is getting long. If Claude starts forgetting steps, run /save-compact.');
+    respond('Context is getting long. State will be auto-saved when compaction occurs — you can keep working.');
   }
 } catch (e) {
   log(`suggest-compact error: ${e.message}`);
