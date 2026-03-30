@@ -4,9 +4,33 @@
       { "type": "command", "command": "node hooks/scripts/session-start.js", "timeout": 5000 }
     ],
     "PreToolUse": [
-      { "type": "command", "command": "node hooks/scripts/suggest-compact.js", "timeout": 3000 }
+      { "type": "command", "command": "node hooks/scripts/suggest-compact.js", "timeout": 3000 },
+      {
+        "type": "command",
+        "command": "node hooks/scripts/block-no-verify.js",
+        "timeout": 3000,
+        "matcher": "Bash"
+      },
+      {
+        "type": "command",
+        "command": "node hooks/scripts/commit-guard.js",
+        "timeout": 10000,
+        "matcher": "Bash"
+      }
     ],
     "PostToolUse": [
+      {
+        "type": "command",
+        "command": "node hooks/scripts/auto-format.js",
+        "timeout": 10000,
+        "matcher": "Edit|Write|MultiEdit"
+      },
+      {
+        "type": "command",
+        "command": "node hooks/scripts/typecheck.js",
+        "timeout": 15000,
+        "matcher": "Edit|Write|MultiEdit"
+      },
       {
         "type": "command",
         "command": "node hooks/scripts/quality-gate.js",
