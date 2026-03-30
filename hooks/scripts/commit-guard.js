@@ -12,8 +12,9 @@ try {
 
   // 1. Commit message format check
   // Support -m "msg" and heredoc $(cat <<'EOF'...EOF) formats
-  const msgMatch = command.match(/-m\s+["']([^"']+)["']/) ||
-                   command.match(/-m\s+"?\$\(cat\s+<<'?EOF'?\n(.+?)\n.*?EOF/s);
+  // Try heredoc format first (Claude Code's default), then simple -m "msg"
+  const msgMatch = command.match(/-m\s+"?\$\(cat\s+<<'?EOF'?\n(.+?)\n.*?EOF/s) ||
+                   command.match(/-m\s+["']([^"']+)["']/);
   if (msgMatch) {
     const msg = (msgMatch[1] || '').trim();
     const validTypes = /^(feat|fix|refactor|docs|test|chore|perf|ci)(\(.+\))?:\s+.+/;
@@ -68,6 +69,8 @@ try {
       }
       if (line.startsWith('+') && !line.startsWith('+++')) {
         const content = line.slice(1);
+        // Skip comments (same as console.log detection)
+        if (content.trim().startsWith('//') || content.trim().startsWith('#') || content.trim().startsWith('*')) continue;
         for (const { name, pattern } of secretPatterns) {
           if (pattern.test(content)) {
             secrets.push(`  ${currentFile}: Possible ${name} — ${content.trim().slice(0, 80)}`);
