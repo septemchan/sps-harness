@@ -1,50 +1,62 @@
 {
   "hooks": {
     "SessionStart": [
-      { "type": "command", "command": "node hooks/scripts/session-start.js", "timeout": 5000 }
+      {
+        "hooks": [
+          { "type": "command", "command": "node hooks/scripts/session-start.js", "timeout": 5000 }
+        ]
+      }
     ],
     "PreToolUse": [
-      { "type": "command", "command": "node hooks/scripts/suggest-compact.js", "timeout": 3000 },
       {
-        "type": "command",
-        "command": "node hooks/scripts/block-no-verify.js",
-        "timeout": 3000,
-        "matcher": "Bash"
+        "hooks": [
+          { "type": "command", "command": "node hooks/scripts/suggest-compact.js", "timeout": 3000 }
+        ]
       },
       {
-        "type": "command",
-        "command": "node hooks/scripts/commit-guard.js",
-        "timeout": 10000,
-        "matcher": "Bash"
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node hooks/scripts/block-no-verify.js", "timeout": 3000 }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node hooks/scripts/commit-guard.js", "timeout": 10000 }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "type": "command",
-        "command": "node hooks/scripts/auto-format.js",
-        "timeout": 10000,
-        "matcher": "Edit|Write|MultiEdit"
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "node hooks/scripts/auto-format.js", "timeout": 10000 }
+        ]
       },
       {
-        "type": "command",
-        "command": "node hooks/scripts/typecheck.js",
-        "timeout": 15000,
-        "matcher": "Edit|Write|MultiEdit"
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "node hooks/scripts/typecheck.js", "timeout": 15000 }
+        ]
       },
       {
-        "type": "command",
-        "command": "node hooks/scripts/quality-gate.js",
-        "timeout": 10000,
-        "matcher": "Edit|Write|MultiEdit"
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "node hooks/scripts/quality-gate.js", "timeout": 10000 }
+        ]
       },
       {
-        "type": "command",
-        "command": "node hooks/scripts/observe.js",
-        "timeout": 3000
+        "hooks": [
+          { "type": "command", "command": "node hooks/scripts/observe.js", "timeout": 3000 }
+        ]
       }
     ],
     "Stop": [
-      { "type": "command", "command": "node hooks/scripts/completion-guard.js", "timeout": 5000 }
+      {
+        "hooks": [
+          { "type": "command", "command": "node hooks/scripts/completion-guard.js", "timeout": 5000 }
+        ]
+      }
     ]
   }
 }
