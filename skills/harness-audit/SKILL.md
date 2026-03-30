@@ -24,7 +24,7 @@ A well-structured harness makes Claude more reliable, consistent, and safe. A po
 ## Two modes
 
 - **Audit** (`.claude/` exists): Score the current setup, show what's strong and what's weak, suggest the highest-impact improvements.
-- **Init** (no `.claude/` directory, or total score 0): Guide the user through creating each component. Read `references/init-templates.md` for concrete templates tailored to each dimension.
+- **Init** (no `.claude/` directory, or total score 0): First, check if design docs exist at `docs/superpowers/specs/`. If yes, recommend running `/harvest` to auto-generate CLAUDE.md before manual setup. If no design docs exist, guide the user through creating each component manually. Read `references/init-templates.md` for concrete templates tailored to each dimension.
 
 ## How to run the audit
 
