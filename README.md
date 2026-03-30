@@ -1,4 +1,4 @@
-# superpowers-harness
+# sps-harness
 
 Harness Engineering companion for Superpowers.
 
@@ -6,7 +6,10 @@ Harness Engineering companion for Superpowers.
 
 Complements Superpowers with capabilities it doesn't cover:
 
-- **Automated quality checks** — lint/typecheck gates on code edits, prompt-audit on `.claude/` edits
+- **Coding standards** — built-in rules for code quality, testing, security, and git workflow
+- **Project config generation** — `/harvest` reads design docs and generates `.claude/CLAUDE.md`
+- **Automated quality checks** — auto-format, typecheck, lint gates on code edits
+- **Commit safety** — message format check, console.log detection, secret leak scanning
 - **Security review** — read-only agent that audits authentication, payment, and data handling
 - **Learning** — extracts work patterns from operation records into actionable rules
 - **Health assessment** — evaluates `.claude/` architecture maturity across 7 dimensions (score 0–23)
@@ -23,10 +26,10 @@ Run these two commands in your terminal:
 
 ```bash
 # Step 1: Register this repo as a plugin source
-claude plugins marketplace add septemchan/superpowers-harness
+claude plugins marketplace add septemchan/sps-harness
 
 # Step 2: Install the plugin
-claude plugins install superpowers-harness
+claude plugins install sps-harness
 ```
 
 Restart Claude Code after installation. The plugin loads globally — all projects get the hooks, commands, and rules automatically.
@@ -36,21 +39,22 @@ Restart Claude Code after installation. The plugin loads globally — all projec
 | Type | Count | Contents |
 |---|---|---|
 | Agent | 1 | security-reviewer (read-only) |
-| Skills | 4 | harness-audit, prompt-audit, strategic-compact, verification-loop |
-| Hooks | 5 | quality-gate, completion-guard, suggest-compact, observe, session-start |
-| Commands | 5 | /security-review, /harness-audit, /save-compact, /learn, /rules |
-| Rules | 3 | workflow-map, harness-method, noise-filter |
+| Skills | 5 | harness-audit, harvest, prompt-audit, strategic-compact, verification-loop |
+| Hooks | 9 | auto-format, typecheck, quality-gate, commit-guard, block-no-verify, completion-guard, suggest-compact, observe, session-start |
+| Commands | 6 | /harvest, /security-review, /harness-audit, /save-compact, /learn, /rules |
+| Rules | 7 | coding-standards, testing-standards, security-standards, git-standards, workflow-map, harness-method, noise-filter |
 
 ## Quick start
 
 1. Install the plugin (see above)
-2. Run `/harness-audit` to assess your `.claude/` architecture
-3. Follow the suggestions to fill gaps
+2. Run `/harvest` to generate `.claude/CLAUDE.md` for your project
+3. Run `/harness-audit` to assess your `.claude/` architecture
 
 ## Commands
 
 | Command | What it does |
 |---|---|
+| `/harvest` | Generate `.claude/CLAUDE.md` from design docs or project files |
 | `/security-review` | Dispatch read-only security audit agent |
 | `/harness-audit` | Evaluate `.claude/` architecture maturity (7 dimensions, 0–23 score) |
 | `/save-compact` | Save state + compress context at logical boundaries |

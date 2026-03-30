@@ -27,7 +27,7 @@ function hashCwd(cwd) {
 
 function getSessionId(cwd) {
   // Read session timestamp from suggest-compact counter file for consistency
-  const counterFile = path.join(os.tmpdir(), `superpowers-harness-${hashCwd(cwd)}.json`);
+  const counterFile = path.join(os.tmpdir(), `sps-harness-${hashCwd(cwd)}.json`);
   try {
     const data = JSON.parse(fs.readFileSync(counterFile, 'utf8'));
     return new Date(data.timestamp).toISOString().slice(0, 19).replace(/[:.]/g, '-');

@@ -14,6 +14,6 @@ Store secrets in environment variables or a secret manager. Validate required se
 
 Rotate any secret that may have been exposed immediately, because delayed rotation increases the window of vulnerability.
 
-When a security issue is found: stop current work immediately, run /security-review, fix all CRITICAL issues before resuming. Use superpowers-harness's /security-review command to dispatch the security audit agent.
+When a security issue is found: stop current work immediately, run /security-review, fix all CRITICAL issues before resuming. Use sps-harness's /security-review command to dispatch the security audit agent.
 
 <!-- Added: 2026-03-30 | Source: ECC security.md adapted for Superpowers ecosystem | Reason: 建立安全实践基线 -->

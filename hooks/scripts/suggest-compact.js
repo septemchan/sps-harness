@@ -7,7 +7,7 @@ const REMIND_INTERVAL = 25;
 const STALE_MS = 30 * 60 * 1000; // 30 minutes
 
 try {
-  const counterFile = path.join(getTempDir(), `superpowers-harness-${hashCwd(process.cwd())}.json`);
+  const counterFile = path.join(getTempDir(), `sps-harness-${hashCwd(process.cwd())}.json`);
 
   let data = { count: 0, timestamp: Date.now() };
   try {

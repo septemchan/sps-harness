@@ -44,7 +44,7 @@ try {
   try {
     const existing = fs.existsSync(rootGitignore) ? fs.readFileSync(rootGitignore, 'utf8') : '';
     if (!existing.includes(ignoreEntry)) {
-      fs.appendFileSync(rootGitignore, `\n# superpowers-harness observation logs\n${ignoreEntry}\n`);
+      fs.appendFileSync(rootGitignore, `\n# sps-harness observation logs\n${ignoreEntry}\n`);
       log('added observation log entry to .gitignore');
     }
   } catch {}
