@@ -143,7 +143,7 @@ Even a well-built harness degrades over time. Rules bloat, contradictions creep 
 
 Report every individual check result, not just dimension totals.
 
-After the structured report, add a **Diagnostic observations** section. This is where you go beyond the checklist and look at the harness with fresh eyes. The 23 checks catch structural issues, but some of the most valuable findings are things no checklist covers: rules that contradict each other in subtle ways, CLAUDE.md content that duplicates what's already in rules/, naming patterns that suggest copy-paste errors, iterate-log entries that reveal a recurring problem nobody has escalated, negative directives that could be rewritten as positive ones. Read the actual content of the files, not just whether they exist, and share what you notice.
+After the structured report, add a **Diagnostic observations** section. This is where you go beyond the checklist and look at the harness with fresh eyes. Only report observations you can support with a specific file, line, or quote. The 23 checks catch structural issues, but some of the most valuable findings are things no checklist covers: rules that contradict each other in subtle ways, CLAUDE.md content that duplicates what's already in rules/, naming patterns that suggest copy-paste errors, iterate-log entries that reveal a recurring problem nobody has escalated, negative directives that could be rewritten as positive ones. Read the actual content of the files, not just whether they exist, and share what you notice.
 
 **Init mode** (score 0):
 

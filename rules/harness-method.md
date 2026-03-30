@@ -28,7 +28,7 @@ When a rule fails to produce the desired behavior, escalate in order:
 2. **Reposition** the rule (move to top or bottom of file for primacy/recency effect)
 3. **Upgrade to hook** (automated enforcement replaces passive guidance)
 
-Never skip steps. Each level is more costly to maintain.
+Follow all three steps in order, because each level is more costly to maintain.
 
 ### Behavioral Triggers
 

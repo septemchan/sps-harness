@@ -8,7 +8,7 @@ Before every commit, verify:
 - [ ] CSRF protection enabled on state-changing endpoints
 - [ ] Authentication and authorization verified on protected routes
 - [ ] Rate limiting applied to public-facing endpoints
-- [ ] Error messages reveal no internal details (stack traces, paths, versions)
+- [ ] Error messages expose only user-friendly descriptions, omitting stack traces, file paths, and version strings
 
 Store secrets in environment variables or a secret manager. Validate required secrets are present at application startup, because missing secrets should fail loudly rather than silently.
 
