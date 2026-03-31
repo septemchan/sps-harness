@@ -1,0 +1,10 @@
+
+# superpowers-harness observation logs
+.claude/instincts/.observations*.jsonl
+
+# sps-harness compact state
+.compact/
+
+# product-launcher hook markers
+.claude/.ui-prompted
+.claude/.launch-prompted
