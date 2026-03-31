@@ -11,6 +11,13 @@ Route to the right tool at each stage:
 - Fuzzy idea → /discover (PM Skills)
 - Requirements clear → /write-prd (PM Skills)
 
+### 2.5. Product Spec (when building a product)
+- Has PRD but no Product-Spec.md → /launch (product-launcher) to convert PRD
+- Has Product-Spec.md, needs design → brainstorming (Superpowers)
+- Brainstorming done, has frontend → consider ui-ux-pro-max before writing-plans
+- Code exists, need status → /check (product-launcher)
+- Design changed during iteration → /sync (product-launcher)
+
 ### 3. Design & Development
 - Technical design → brainstorming (Superpowers)
 - Create skill → skill-creator
