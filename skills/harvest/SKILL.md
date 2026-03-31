@@ -82,6 +82,13 @@ If `.claude/CLAUDE.md` already exists:
 7. Verify: confirm the file is under 100 lines
 8. Stage and commit the generated CLAUDE.md
 
+## 已知问题
+
+- monorepo 根目录的 package.json 可能包含 workspace 管理工具而非实际技术栈，容易将 devDependencies（如 turbo、lerna）误认为核心依赖
+- 生成的 CLAUDE.md 在依赖较多的项目中容易超过 100 行限制，需要在生成后主动检查并精简
+- `.env.example` 中的注释行有时会被误读为环境变量名
+- 当 `src/` 目录结构很深时，架构概览倾向于过度展开子目录，应只展示前两层
+
 ## Important
 
 - Never read .env file values — only read key names from .env.example or .env.local

@@ -1,0 +1,23 @@
+{
+  "skill_name": "product-launcher",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我把这个 PRD 转成 Product-Spec，项目目录里有 PRD.md",
+      "expected_output": "一份结构完整的 Product-Spec.md，包含产品说明、项目结构、功能清单（核心/辅助/不做）、用户流程（含异常流程）、数据模型、第三方依赖、非功能需求、原型策略等章节。审查过程中应逐个追问 PRD 中的模糊点。",
+      "files": ["PRD.md"]
+    },
+    {
+      "id": 2,
+      "prompt": "用 /launch 把 PRD 转成产品规格",
+      "expected_output": "识别出 PRD 内容过于简略（不到 200 字），告知用户缺少哪些关键信息（目标用户、具体功能描述、用户流程等），建议先补充 PRD 或在对话中逐步补齐，而不是直接生成一份全是占位符的 Spec。",
+      "files": ["PRD.md"]
+    },
+    {
+      "id": 3,
+      "prompt": "/launch 帮我重新整理一下产品规格",
+      "expected_output": "发现项目中已存在 Product-Spec.md，主动询问用户是在现有基础上更新还是从 PRD 重新生成，而不是直接覆盖。",
+      "files": ["PRD.md", "Product-Spec.md"]
+    }
+  ]
+}

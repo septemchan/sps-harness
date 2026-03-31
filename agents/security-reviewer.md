@@ -2,6 +2,7 @@
 name: security-reviewer
 description: Read-only security audit agent. Checks OWASP Top 10, hardcoded secrets, dependency vulnerabilities, and attack surface.
 model: sonnet
+maxTurns: 30
 allowedTools:
   - Read
   - Glob

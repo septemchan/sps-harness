@@ -158,6 +158,13 @@ dimension's init guidance from references/init-templates.md,
 tailored to the project's detected tech stack and structure.]
 ```
 
+## 已知问题
+
+- monorepo 项目中 `.claude/` 可能在子目录而非根目录，脚本默认只扫描根目录，会误判为 "no harness"
+- Windows 路径中的反斜杠可能导致 `paths:` frontmatter 匹配失败，检查时注意路径分隔符
+- `git log` 检查文档时效性（Dimension 7.3）在浅克隆（shallow clone）仓库中可能拿不到完整历史，导致误判为 "stale"
+- 空的 `.claude/rules/` 目录（有文件夹但无 .md 文件）仍应判为未通过 Dimension 1.2
+
 ## Bundled resources
 
 | Resource | When to use |

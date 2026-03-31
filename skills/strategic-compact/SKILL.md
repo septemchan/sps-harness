@@ -56,6 +56,13 @@ Everything only in your head will be lost: intermediate reasoning, verbal decisi
 3. Read the specific files mentioned in the state file (don't re-explore the whole codebase)
 4. Confirm with the user before resuming
 
+## 已知问题
+
+- state 文件写入成功但 TodoWrite 没同步更新，导致 compaction 后任务列表和 state 文件不一致
+- branch 名含斜杠（如 `feature/auth`）时，`state-{branch}.md` 的文件名会变成嵌套路径，需要将斜杠替换为连字符
+- compaction 后如果 Claude 没有先读 state 文件就开始响应，会丢失所有上下文。"After compaction" 的第一步必须是读 state 文件
+- 多人在同一 branch 上工作时，`.compact/` 中的 state 文件可能互相覆盖
+
 ## Housekeeping
 
 Add `.compact/` to `.gitignore`. These files are temporary session state, not project artifacts.

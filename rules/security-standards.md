@@ -17,3 +17,4 @@ Rotate any secret that may have been exposed immediately, because delayed rotati
 When a security issue is found: stop current work immediately, run /security-review, fix all CRITICAL issues before resuming. Use sps-harness's /security-review command to dispatch the security audit agent.
 
 <!-- Added: 2026-03-30 | Source: ECC security.md adapted for Superpowers ecosystem | Reason: 建立安全实践基线 -->
+<!-- TODO: secrets 扫描和 console.log 检查已由 commit-guard hook 自动执行，考虑从上方清单中移除对应项以减少重复 -->

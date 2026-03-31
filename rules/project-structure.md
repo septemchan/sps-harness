@@ -13,6 +13,6 @@ When a Product-Spec.md file exists in the project root, this is a product develo
 ```
 
 **Rules:**
-- All product source code MUST go in `app/`. Never create code files in the project root.
+- All product source code goes in `app/`, because keeping the root clean makes it easier to distinguish config from implementation.
 - `Product-Spec.md` is the single source of truth for what the product should do.
 - When iterating, update `Product-Spec.md` and `Product-Changelog.md` before or alongside code changes.

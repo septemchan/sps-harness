@@ -116,3 +116,10 @@ Produce a summary table, then details for any FAIL phase:
 If all phases PASS (including after auto-fix): **All phases passed. Ready for PR.**
 
 If any phase needs user input: **[N] issue(s) need your decision. See details above.**
+
+## 已知问题
+
+- pnpm workspace 项目中 `pnpm run build` 需要加 `--filter` 参数，否则会构建所有 package，耗时过长或报错
+- `npm audit` 在没有 `package-lock.json`（只有 `pnpm-lock.yaml`）时会报错而非 SKIP，需要根据 lock 文件类型选择正确的 audit 工具
+- Phase 6 Diff Review 中，大型 lock 文件变更（如 pnpm-lock.yaml 上千行 diff）会淹没真正的代码变更，应先过滤 lock 文件再 review
+- auto-fix lint 错误后如果没有重新运行 type check，可能引入新的类型问题（auto-fix 可能删除 "unused" import 而该 import 实际被类型系统依赖）
