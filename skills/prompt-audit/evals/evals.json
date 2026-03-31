@@ -4,28 +4,28 @@
     {
       "id": 1,
       "prompt": "审计提示词 test-prompt-bad.md",
-      "expected_output": "应触发全部 5 条 ERROR（E1-E5）、6 条 WARNING（W2/W3/W4/W6/W7/W8）、4 条 INFO",
+      "expected_output": "应触发全部 5 条 ERROR（G-E1 至 G-E5）、6 条 WARNING（G-W2/G-W3/G-W4/G-W6/G-W7/G-W8）、4 条 INFO",
       "files": ["test-prompt-bad.md"],
       "assertions": [
-        {"text": "报告包含 E1（过度强调）", "type": "contains", "value": "E1"},
-        {"text": "报告包含 E2（纯否定）", "type": "contains", "value": "E2"},
-        {"text": "报告包含 E3（否定缺原因）", "type": "contains", "value": "E3"},
-        {"text": "报告包含 E4（引号做分隔）", "type": "contains", "value": "E4"},
-        {"text": "报告包含 E5（固定思考步骤）", "type": "contains", "value": "E5"},
+        {"text": "报告包含 G-E1（过度强调）", "type": "contains", "value": "G-E1"},
+        {"text": "报告包含 G-E2（纯否定）", "type": "contains", "value": "G-E2"},
+        {"text": "报告包含 G-E3（否定缺原因）", "type": "contains", "value": "G-E3"},
+        {"text": "报告包含 G-E4（引号做分隔）", "type": "contains", "value": "G-E4"},
+        {"text": "报告包含 G-E5（固定思考步骤）", "type": "contains", "value": "G-E5"},
         {"text": "ERROR 数量为 5", "type": "regex", "value": "ERROR.*5"},
-        {"text": "报告包含 W2（角色过重）", "type": "contains", "value": "W2"},
+        {"text": "报告包含 G-W2（角色过重）", "type": "contains", "value": "G-W2"},
         {"text": "报告包含 INFO 部分", "type": "contains", "value": "INFO"}
       ]
     },
     {
       "id": 2,
       "prompt": "prompt audit skill-creator SKILL.md (Anthropic official)",
-      "expected_output": "应检出 E1（全大写强调）和 E2/E3（纯否定），不应误报 E5（原则列表非固定思考步骤）",
+      "expected_output": "应检出 G-E1（全大写强调）和 G-E2/G-E3（纯否定），不应误报 G-E5（原则列表非固定思考步骤）",
       "files": [],
       "assertions": [
-        {"text": "报告包含 E1", "type": "contains", "value": "E1"},
-        {"text": "报告包含 E2 或 E3", "type": "regex", "value": "E[23]"},
-        {"text": "E5 不作为 ERROR 报告", "type": "regex_not_match", "value": "#### E5.*Prescriptive thinking steps"}
+        {"text": "报告包含 G-E1", "type": "contains", "value": "G-E1"},
+        {"text": "报告包含 G-E2 或 G-E3", "type": "regex", "value": "G-E[23]"},
+        {"text": "G-E5 不作为 ERROR 报告", "type": "regex_not_match", "value": "#### G-E5.*Prescriptive thinking steps"}
       ]
     },
     {
@@ -56,6 +56,46 @@
       "assertions": [
         {"text": "产出了审计报告格式", "type": "contains", "value": "Prompt Audit Report"},
         {"text": "包含 Overview 部分", "type": "contains", "value": "Overview"}
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "审计 test-claude-md-bad.md (CLAUDE.md with violations)",
+      "expected_output": "应触发 C-E1（超 200 行）和至少一条 C-W 规则，报告显示 Type: CLAUDE.md",
+      "files": ["test-claude-md-bad.md"],
+      "assertions": [
+        {"text": "报告显示文件类型", "type": "contains", "value": "Type:"},
+        {"text": "报告包含 C-E1（文件过长）", "type": "contains", "value": "C-E1"},
+        {"text": "报告加载了 CLAUDE.md 专属规则", "type": "regex", "value": "CLAUDE.md-specific"}
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "审计 test-skill-bad/SKILL.md (skill with common issues)",
+      "expected_output": "应触发 S-W1（description 是摘要）和 S-W5（默认行为描述），报告显示 Type: SKILL.md",
+      "files": ["test-skill-bad/SKILL.md"],
+      "assertions": [
+        {"text": "报告显示 Skill 类型", "type": "contains", "value": "SKILL.md"},
+        {"text": "报告包含 S-W1 或 S-W5", "type": "regex", "value": "S-W[15]"}
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "审计 test-agent-bad.md (agent definition with issues)",
+      "expected_output": "应触发 A-W1（缺 tools）和 A-W3（缺 maxTurns），报告显示 Type: Agent",
+      "files": ["test-agent-bad.md"],
+      "assertions": [
+        {"text": "报告显示 Agent 类型", "type": "contains", "value": "Agent"},
+        {"text": "报告包含 A-W1 或 A-W3", "type": "regex", "value": "A-W[13]"}
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "审计 test-misplaced-agent.md (agent definition not in .claude/agents/)",
+      "expected_output": "应触发 G-W9（位置不匹配），检测到 Agent 特征但文件不在标准路径",
+      "files": ["test-misplaced-agent.md"],
+      "assertions": [
+        {"text": "报告包含 G-W9", "type": "contains", "value": "G-W9"}
       ]
     }
   ]

@@ -1,20 +1,23 @@
 ---
 name: prompt-audit
 description: >
-  Audit system prompts, SKILL.md files, and CLAUDE.md files against Claude Opus 4.6 official best practices.
-  Identifies optimization opportunities without changing functionality.
   Use this skill when the user says "审计提示词", "prompt audit", "检查提示词", "review my prompt",
   "优化提示词写法", "帮我看看这个prompt", "这个写法对不对", "有没有可以优化的地方",
+  "审计 agent", "review my agent", "检查这个 agent 定义",
   or asks to check whether a prompt follows best practices.
-  Also trigger when the user shares a prompt and asks for feedback, references prompt quality,
-  prompt linting, or wants to improve how their instructions are written for Claude.
-  This applies to system prompts, skill definitions, CLAUDE.md files, and any file containing
-  instructions for an LLM. When in doubt about whether to trigger, trigger.
+  Also trigger when the user shares a prompt, CLAUDE.md, SKILL.md, or agent definition
+  and asks for feedback, references prompt quality, prompt linting,
+  or wants to improve how their instructions are written for Claude.
+  This applies to system prompts, skill definitions, CLAUDE.md files, agent definitions,
+  and any file containing instructions for an LLM.
+  Also trigger when the user pastes a block of text that looks like instructions for an LLM,
+  even if they don't explicitly say "audit" or "review".
+  When in doubt about whether to trigger, trigger.
 ---
 
 # Prompt Audit
 
-You are a prompt auditor. Review prompt files against Anthropic's official best practices for Claude Opus 4.6, and produce a structured audit report.
+You are a prompt auditor. Audit system prompts, SKILL.md files, CLAUDE.md files, and agent definitions against Anthropic's official best practices for Claude Opus 4.6. Identify optimization opportunities without changing functionality, and produce a structured audit report.
 
 ## Scope
 
@@ -41,14 +44,14 @@ When scanning a skill directory, read each `.md` file's full content, then class
 
 **Pre-filter** (apply before reading content):
 - Skip non-markdown files.
-- Skip files under 100 characters (produce at most one INFO-level observation).
+- Skip files under 100 characters (too short to contain meaningful audit targets; produce at most one INFO-level observation).
 
 **Content-based classification** (read the file, then judge):
 
 | Category | How to identify from content | Action |
 |----------|------------------------------|--------|
 | **Instruction file** | Contains directives aimed at an LLM: role assignments ("You are..."), imperative instructions ("Analyze the...", "Output in..."), workflow/step definitions telling the model what to do, rule sets the model should follow, or prompt-engineering structures (XML tags wrapping instructions, few-shot scaffolding). | Full audit (all rules) |
-| **Template file** | Primarily placeholder structures defining output format: slot markers (`[placeholder]`, `{{variable}}`, `{field_name}`), section headings with empty bodies waiting to be filled, or sample output skeletons. Contains little to no imperative instruction directed at an LLM. | Light audit: INFO-level observations only |
+| **Template file** | Primarily placeholder structures defining output format: slot markers (`[placeholder]`, `{{variable}}`, `{field_name}`), section headings with empty bodies waiting to be filled, or sample output skeletons. Contains little to no imperative instruction directed at an LLM. | Light audit: INFO-level observations only (template structure is intentional, so rule violations in placeholders would be false positives) |
 | **Data/reference file** | Narrative content, sample dialogues, reference scripts, fictional text, factual reference tables, or example outputs. No imperative instructions directed at an LLM. | Skip |
 
 **When a file is ambiguous** (e.g. mixes instructions with reference data), classify based on the file's primary purpose. If over half the content is LLM-directed instructions, treat as instruction file; otherwise treat as data/reference.
@@ -59,10 +62,21 @@ When scanning a skill directory, read each `.md` file's full content, then class
    - Single file mode: read the target file (or the currently open note if none specified).
    - Directory or batch mode: list all `.md` files under the target directory. For each file, apply the pre-filter, then read its content and classify it per **File classification**. Build the audit queue from instruction files and template files.
 2. **Auditability check**: For each file in the queue, skip pure data files (JSON/CSV), code files (.js/.py/.ts), or content under 100 characters. For very short content, produce only INFO-level observations.
-3. **Load rules**: Read both `references/error-rules.md` and `references/warning-info-rules.md`.
-4. **Audit each file**: Run all applicable rules against the content, applying the false positive mitigation checks before reporting each finding. For template files, only produce INFO-level observations.
-5. **Uncertainty handling**: If you are uncertain whether a pattern constitutes a violation, note your uncertainty in the finding rather than reporting it as a confident match. Err on the side of not flagging borderline cases as ERROR; use WARNING or INFO instead and explain your reasoning.
-6. **Produce report**: For a single file, use the standard report format. For a directory or batch, produce a per-file report for each auditable file, then append a summary table (see report formats below).
+3. **Identify file type**: Determine the file type using path-based detection:
+   - File named `CLAUDE.md` or `CLAUDE.local.md` → CLAUDE.md type
+   - Path matches `.claude/rules/*.md` → CLAUDE.md type
+   - File named `SKILL.md` under `.claude/skills/` or `~/.claude/skills/` → Skill type
+   - Path matches `.claude/agents/*.md` → Agent type
+   - None of the above → generic prompt type (use existing instruction/template/data classification)
+4. **Location check**: Scan content for frontmatter fields that indicate a specific file type. If content features don't match the path-based type, flag G-W9.
+5. **Load rules**: Read `references/rules-global.md`, then load the type-specific rules file:
+   - CLAUDE.md type → also read `references/rules-claude-md.md`
+   - Skill type → also read `references/rules-skill-md.md`
+   - Agent type → also read `references/rules-agent-md.md`
+   - Generic prompt → global rules only
+6. **Audit each file**: Run ALL applicable rules against the content — both global rules and type-specific rules. Do not stop after finding global-level issues; always complete the type-specific checks as well (e.g., a CLAUDE.md with many G-E1 violations still needs C-E1 line count checked). Apply the false positive mitigation checks before reporting each finding. For template files, only produce INFO-level observations.
+7. **Uncertainty handling**: If you are uncertain whether a pattern constitutes a violation, note your uncertainty in the finding rather than reporting it as a confident match. Err on the side of not flagging borderline cases as ERROR; use WARNING or INFO instead and explain your reasoning.
+8. **Produce report**: For a single file, use the standard report format. For a directory or batch, produce a per-file report for each auditable file, then append a summary table (see report formats below).
 
 ## Report format
 
@@ -73,14 +87,15 @@ Structure your output following this template. Only include sections that have f
 
 ### 📊 Overview
 - File: [filename]
-- Rules checked: [N]
+- Type: [CLAUDE.md / SKILL.md / Agent / Generic prompt]
+- Rules checked: Global ([N]) + [Type]-specific ([N]) = [Total]
 - 🔴 ERROR: [N]
 - 🟡 WARNING: [N]
 - 🔵 INFO: [N]
 
 ### 🔴 ERROR (should fix)
 
-#### E[n]: [Rule name]
+#### [Rule ID]: [Rule name]
 - **Found**: [exact location and content in the prompt]
 - **Why this matters**: [explanation]
 - **Anthropic says**: [verbatim quote from official docs]
@@ -88,7 +103,7 @@ Structure your output following this template. Only include sections that have f
 
 ### 🟡 WARNING (consider fixing, depends on context)
 
-#### W[n]: [Rule name]
+#### [Rule ID]: [Rule name]
 - **Found**: [exact location and content]
 - **Why this matters**: [explanation]
 - **When to fix / when to ignore**: [context-dependent guidance]
@@ -97,7 +112,7 @@ Structure your output following this template. Only include sections that have f
 
 ### 🔵 INFO (for reference)
 
-#### I[n]: [Rule name]
+#### [Rule ID]: [Rule name]
 - **Observation**: [what was found]
 - **Note**: [informational context]
 </example>
@@ -134,39 +149,16 @@ When auditing all skills, append a final cross-skill table after all per-skill s
 
 ---
 
-## Rules index
+## Rules
 
-### 🔴 ERROR rules (read `references/error-rules.md` for full details)
+Full rule definitions are in the `references/` directory, organized by file type:
 
-| ID | Name | One-line check |
-|----|------|---------------|
-| E1 | Aggressive emphasis | All-caps words like CRITICAL, IMPORTANT, MUST, ALWAYS, NEVER |
-| E2 | Bare negative without alternative | "Don't do X" without saying what to do instead |
-| E3 | Negative without reasoning | Prohibitions that don't explain why |
-| E4 | Quotes as primary delimiters | Using `""` instead of XML tags to separate instructions from data |
-| E5 | Prescriptive thinking steps | Forcing fixed internal reasoning sequence instead of letting Claude think freely |
+- `references/rules-global.md` — 19 rules applying to all file types
+- `references/rules-claude-md.md` — 5 rules for CLAUDE.md files
+- `references/rules-skill-md.md` — 6 rules for SKILL.md files
+- `references/rules-agent-md.md` — 4 rules for Agent definitions
 
-### 🟡 WARNING rules (read `references/warning-info-rules.md` for full details)
-
-| ID | Name | One-line check |
-|----|------|---------------|
-| W1 | Data after instructions | Long-form data placed below the query in prompts >2000 chars |
-| W2 | Elaborate role definition | Role description >3 sentences or using superlatives |
-| W3 | Examples not in tags | Few-shot examples without `<example>` wrapping |
-| W4 | No hallucination safeguard | Missing "verify before answering" constraint in factual tasks |
-| W5 | No destructive action safeguard | Agent prompt without confirmation for irreversible operations |
-| W6 | No output format spec | Missing positive description of expected output |
-| W7 | Output constraints as negations | "Don't exceed 500 words" instead of "Write 300-500 words" |
-| W8 | Format contradiction | Prompt formatting style conflicts with desired output format |
-
-### 🔵 INFO rules (read `references/warning-info-rules.md` for full details)
-
-| ID | Name | What it reports |
-|----|------|----------------|
-| I1 | Example count | Number of `<example>` tags |
-| I2 | Prompt length | Character count and estimated tokens |
-| I3 | XML tag inventory | All XML tags and nesting structure |
-| I4 | Instruction density | Ratio of imperative sentences to explanatory content |
+Complete index with one-line descriptions: `references/rules-index.md`
 
 ---
 
@@ -174,17 +166,20 @@ When auditing all skills, append a final cross-skill table after all per-skill s
 
 Before reporting any finding, apply these checks:
 
-1. **Security context exemption**: If the prompt involves security (look for "security", "安全", "vulnerability", "injection", "credentials", "auth", "production data"), downgrade E1 to WARNING.
-2. **Citation vs delimiter**: For E4, distinguish citation quotes from structural delimiter quotes. Only flag delimiters.
-3. **Negative + positive pairs**: For E2, if a negative is immediately paired with a positive alternative ("Don't X, instead Y"), skip it.
-4. **List-context negatives**: For E3, if a negative in a list has self-evident reasoning from context, downgrade to INFO.
-5. **Output steps vs thinking steps**: For E5, only flag constraints on *internal reasoning*, not *output action sequences*.
+1. **Security context exemption**: If the prompt involves security (look for "security", "安全", "vulnerability", "injection", "credentials", "auth", "production data"), downgrade G-E1 to WARNING.
+2. **Citation vs delimiter**: For G-E4, distinguish citation quotes from structural delimiter quotes. Only flag delimiters.
+3. **Negative + positive pairs**: For G-E2, if a negative is immediately paired with a positive alternative ("Don't X, instead Y"), skip it.
+4. **List-context negatives**: For G-E3, if a negative in a list has self-evident reasoning from context, downgrade to INFO.
+5. **Output steps vs thinking steps**: For G-E5, only flag constraints on *internal reasoning*, not *output action sequences*.
+6. **CLAUDE.md line count**: For C-E1, if the file uses `@path/to/file` import syntax, count only non-import lines.
+7. **Skill steps vs goals**: For S-W2, do not flag steps describing user-visible workflow phases (e.g., "Phase 1: gather requirements → Phase 2: produce report"). Only flag steps constraining Claude's internal execution autonomy. S-W2 and G-E5 can trigger on the same content but address different concerns.
+8. **Agent generic role**: For A-W2, only flag when the description uses generic role words ("engineer", "developer", "analyst") AND does not bind them to a specific functional domain. Clear task scope descriptions override generic naming.
 
 ---
 
 ## Rule version
 
-Rules are based on these Anthropic documents as of **2026-03**:
+Rules are based on these sources as of **2026-03**:
 
 | Abbreviation | Full title | URL |
 |---|---|---|
@@ -192,5 +187,10 @@ Rules are based on these Anthropic documents as of **2026-03**:
 | WhatsNew | What's new in Claude 4.6 | https://platform.claude.com/docs/en/about-claude/models/whats-new-claude-4-6 |
 | Migration | Migration guide | https://platform.claude.com/docs/en/about-claude/models/migration-guide |
 | XMLTags | Use XML tags | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/use-xml-tags |
+| CCDocs | Claude Code documentation | https://docs.anthropic.com/en/docs/claude-code |
+
+Additional sources (semi-official, from Anthropic team members):
+- **Boris Cherny** (Claude Code creator): Public tips and recommendations from X/Twitter, cited as "Boris (Claude Code creator) says"
+- **Thariq** (Anthropic): Skills deep-dive tips from March 2026, cited as "Thariq (Anthropic) says"
 
 If Anthropic updates these documents, the rules in `references/` should be reviewed and updated accordingly.
