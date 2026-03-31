@@ -13,8 +13,8 @@ try {
   const cwd = process.cwd();
 
   // Only trigger for files in app/
-  const appDir = path.join(cwd, 'app');
-  const normalizedPath = path.resolve(filePath);
+  const appDir = path.join(cwd, 'app').toLowerCase();
+  const normalizedPath = path.resolve(filePath).toLowerCase();
   if (!normalizedPath.startsWith(appDir)) process.exit(0);
 
   // Only trigger if Product-Spec.md exists

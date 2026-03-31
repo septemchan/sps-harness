@@ -10,8 +10,8 @@ try {
   const cwd = process.cwd();
 
   // Only trigger for files in docs/superpowers/specs/
-  const specsDir = path.join(cwd, 'docs', 'superpowers', 'specs');
-  const normalizedPath = path.resolve(filePath);
+  const specsDir = path.join(cwd, 'docs', 'superpowers', 'specs').toLowerCase();
+  const normalizedPath = path.resolve(filePath).toLowerCase();
   if (!normalizedPath.startsWith(specsDir)) process.exit(0);
 
   // Only trigger if Product-Spec.md exists (product-launcher workflow active)
@@ -27,6 +27,7 @@ try {
   // Only trigger once per session (use marker file)
   const markerFile = path.join(cwd, '.claude', '.ui-prompted');
   if (fileExists(markerFile)) process.exit(0);
+  fs.mkdirSync(path.dirname(markerFile), { recursive: true });
   fs.writeFileSync(markerFile, new Date().toISOString());
 
   respond(

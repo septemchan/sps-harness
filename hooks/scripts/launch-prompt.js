@@ -10,8 +10,8 @@ try {
   const cwd = process.cwd();
 
   // Only trigger for files in docs/superpowers/plans/
-  const plansDir = path.join(cwd, 'docs', 'superpowers', 'plans');
-  const normalizedPath = path.resolve(filePath);
+  const plansDir = path.join(cwd, 'docs', 'superpowers', 'plans').toLowerCase();
+  const normalizedPath = path.resolve(filePath).toLowerCase();
   if (!normalizedPath.startsWith(plansDir)) process.exit(0);
 
   // Only trigger if Product-Spec.md exists
@@ -28,6 +28,7 @@ try {
   // Only trigger once (use marker file)
   const markerFile = path.join(cwd, '.claude', '.launch-prompted');
   if (fileExists(markerFile)) process.exit(0);
+  fs.mkdirSync(path.dirname(markerFile), { recursive: true });
   fs.writeFileSync(markerFile, new Date().toISOString());
 
   // Read prototype strategy from Product-Spec.md

@@ -10,8 +10,8 @@ try {
   const cwd = process.cwd();
 
   // Only trigger for files in docs/superpowers/specs/
-  const specsDir = path.join(cwd, 'docs', 'superpowers', 'specs');
-  const normalizedPath = path.resolve(filePath);
+  const specsDir = path.join(cwd, 'docs', 'superpowers', 'specs').toLowerCase();
+  const normalizedPath = path.resolve(filePath).toLowerCase();
   if (!normalizedPath.startsWith(specsDir)) process.exit(0);
 
   // Only trigger if Product-Spec.md exists
