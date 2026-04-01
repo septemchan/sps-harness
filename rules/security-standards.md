@@ -1,7 +1,10 @@
 ## Security Standards
 
-Before every commit, verify:
-- [ ] No hardcoded secrets (API keys, passwords, tokens) in source code
+Automated checks (commit-guard hook handles, no manual verification needed):
+- Hardcoded secrets → commit-guard.js auto-scans on every commit
+- console.log / debugger → commit-guard.js auto-detects on every commit
+
+Before every commit, manually verify:
 - [ ] All user inputs validated and sanitized
 - [ ] Database queries use parameterized statements (SQL injection prevention)
 - [ ] User-generated HTML is escaped (XSS prevention)
@@ -14,7 +17,6 @@ Store secrets in environment variables or a secret manager. Validate required se
 
 Rotate any secret that may have been exposed immediately, because delayed rotation increases the window of vulnerability.
 
-When a security issue is found: stop current work immediately, run /security-review, fix all CRITICAL issues before resuming. Use sps-harness's /security-review command to dispatch the security audit agent.
+When a security issue is found: stop current work immediately, run /security-review, fix all CRITICAL issues before resuming.
 
 <!-- Added: 2026-03-30 | Source: ECC security.md adapted for Superpowers ecosystem | Reason: 建立安全实践基线 -->
-<!-- TODO: secrets 扫描和 console.log 检查已由 commit-guard hook 自动执行，考虑从上方清单中移除对应项以减少重复 -->

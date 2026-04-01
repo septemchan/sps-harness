@@ -1,6 +1,6 @@
 ## Git Standards
 
-Format commit messages as `<type>: <description>`, because consistent formatting makes history scannable and enables changelog generation.
+Format commit messages as `<type>: <description>` (auto-validated by commit-guard hook), because consistent formatting makes history scannable and enables changelog generation.
 
 Valid types: feat, fix, refactor, docs, test, chore, perf, ci.
 
