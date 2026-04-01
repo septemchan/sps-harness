@@ -1,16 +1,28 @@
 ---
 name: harvest
 description: >
-  Generate a project-specific .claude/CLAUDE.md from Superpowers design docs and/or project files.
+  Use when: starting a new project after brainstorming, project has no .claude/CLAUDE.md,
+  or design docs changed and CLAUDE.md needs refresh.
   Trigger on: "harvest", "/harvest", "生成CLAUDE.md", "generate project config",
   "sync design docs to claude", "把设计文档同步到.claude".
   Use after Superpowers brainstorming produces a design doc, before writing-plans.
   Also use on existing projects that lack .claude/CLAUDE.md.
+  Do not trigger for: editing existing CLAUDE.md content (user does that manually),
+  .claude/ health assessment (harness-audit's job).
 ---
 
 # Harvest
 
 Generate `.claude/CLAUDE.md` so Claude has project context in every session.
+
+## 当前项目快照
+
+- Git 分支: !`git branch --show-current 2>/dev/null || echo "not a git repo"`
+- 包管理器: !`(ls pnpm-lock.yaml 2>/dev/null && echo pnpm) || (ls yarn.lock 2>/dev/null && echo yarn) || (ls package-lock.json 2>/dev/null && echo npm) || echo "unknown"`
+- Node 版本: !`node -v 2>/dev/null || echo "N/A"`
+- Python 版本: !`python3 --version 2>/dev/null || echo "N/A"`
+- 设计文档: !`ls docs/superpowers/specs/*.md 2>/dev/null || echo "none"`
+- 现有 CLAUDE.md: !`(test -f .claude/CLAUDE.md && echo "exists, $(wc -l < .claude/CLAUDE.md) lines") || echo "not found"`
 
 ## Two modes
 
