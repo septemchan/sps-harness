@@ -37,9 +37,9 @@ Route to the right tool at each stage:
 ### 6. Quality Assurance（automatic）
 - Code edited → auto-format hook (formatter) → typecheck hook (tsc) → quality-gate hook (linter)
 - .claude/ .md edited → quality-gate hook (prompt-audit reminder)
-- git commit attempted → commit-guard hook (message format + console.log + secret scan)
+- git commit attempted → commit-guard hook (secrets blocked, console.log/format injected, suggests /compliance-review)
 - git commit --no-verify attempted → block-no-verify hook (blocked)
-- Session ending → completion-guard hook (security check)
+- Session ending → completion-guard hook (security files → hard stop, 3+ code files → suggests /verify)
 - ~50 tool calls → suggest-compact hook
 - All operations → observe hook (recording)
 - 危险命令 (rm -rf, --no-verify, git push --force) → settings.json permissions.deny (权限层拦截)
@@ -54,4 +54,4 @@ Route to the right tool at each stage:
 
 ### Work Mode Routing
 - Building .claude/ architecture: harness-audit → /rules → prompt-audit → /harness-audit (iterate)
-- Writing code/products: /launch → brainstorming → writing-plans → SDD → verification-loop (fork) → /security-review (if needed)
+- Writing code/products: /launch → brainstorming → writing-plans → SDD → /verify → /compliance-review (if needed) → /security-review (if needed)
