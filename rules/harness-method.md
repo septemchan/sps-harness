@@ -48,3 +48,10 @@ Claude should proactively suggest actions when these patterns appear:
 - **Hooks** (event-driven): Automated checks that run without user intervention.
 
 Move anything lengthy or situational out of rules/ into skills/.
+
+### Skill 运行模式选择
+
+- **默认（inline）**：Skill 在主上下文运行，用户可追问中间过程。适合诊断类（harness-audit、prompt-audit）。
+- **context: fork**：Skill 在隔离子窗口运行，只返回最终结果。适合重型管道类（verification-loop）。
+
+选择标准：用户需要追问中间细节 → inline；用户只关心最终结论 → fork。

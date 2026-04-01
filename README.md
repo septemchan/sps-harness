@@ -13,6 +13,7 @@ Complements Superpowers with capabilities it doesn't cover:
 - **Security review** — read-only agent that audits authentication, payment, and data handling
 - **Learning** — extracts work patterns from operation records into actionable rules
 - **Health assessment** — evaluates `.claude/` architecture maturity across 7 dimensions (score 0–23)
+- **Cross-session memory** — security-reviewer remembers past findings and false positives across sessions
 
 ## What it doesn't do
 
@@ -38,11 +39,11 @@ Restart Claude Code after installation. The plugin loads globally — all projec
 
 | Type | Count | Contents |
 |---|---|---|
-| Agent | 1 | security-reviewer (read-only) |
-| Skills | 5 | harness-audit, harvest, prompt-audit, strategic-compact, verification-loop |
+| Agent | 1 | security-reviewer (read-only, cross-session memory) |
+| Skills | 7 | harness-audit, harvest, product-drafter, product-launcher, prompt-audit, strategic-compact, verification-loop |
 | Hooks | 9 | auto-format, typecheck, quality-gate, commit-guard, block-no-verify, completion-guard, suggest-compact, observe, session-start |
 | Commands | 6 | /harvest, /security-review, /harness-audit, /save-compact, /learn, /rules |
-| Rules | 7 | coding-standards, testing-standards, security-standards, git-standards, workflow-map, harness-method, noise-filter |
+| Rules | 8 | coding-standards, testing-standards, security-standards, git-standards, workflow-map, harness-method, noise-filter, project-structure |
 
 ## Quick start
 

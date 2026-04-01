@@ -42,9 +42,10 @@ Route to the right tool at each stage:
 - Session ending → completion-guard hook (security check)
 - ~50 tool calls → suggest-compact hook
 - All operations → observe hook (recording)
+- 危险命令 (rm -rf, --no-verify, git push --force) → settings.json permissions.deny (权限层拦截)
 
 ### 7. Security Review
-- Auth/payment/user data changes → /security-review
+- Auth/payment/user data changes → /security-review (cross-session memory, tracks false positives)
 
 ### 8. Learning & Health
 - Extract patterns → /learn
@@ -53,4 +54,4 @@ Route to the right tool at each stage:
 
 ### Work Mode Routing
 - Building .claude/ architecture: harness-audit → /rules → prompt-audit → /harness-audit (iterate)
-- Writing code/products: /launch → brainstorming → writing-plans → SDD → verification-loop → /security-review (if needed)
+- Writing code/products: /launch → brainstorming → writing-plans → SDD → verification-loop (fork) → /security-review (if needed)
