@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { fileExists, readStdin, log } = require('./lib/utils');
+const { fileExists, readStdin, log, inject } = require('./lib/utils');
 
 try {
   const input = readStdin();
@@ -11,41 +11,58 @@ try {
   const ext = path.extname(filePath).toLowerCase();
   const cwd = process.cwd();
 
-  // JavaScript/TypeScript files
+  let contentBefore = null;
+  try { contentBefore = fs.readFileSync(filePath, 'utf8'); } catch {}
+
+  let formatted = false;
+  let formatter = '';
+
   const jsExts = ['.ts', '.tsx', '.js', '.jsx', '.json', '.css', '.scss'];
   if (jsExts.includes(ext)) {
-    // Priority 1: Biome
     if (fileExists(path.join(cwd, 'biome.json')) || fileExists(path.join(cwd, 'biome.jsonc'))) {
       spawnSync('npx', ['biome', 'format', '--write', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
-      process.exit(0);
-    }
-    // Priority 2: Prettier
-    const hasPrettier = fs.readdirSync(cwd).some(f => f.startsWith('.prettierrc') || f.startsWith('prettier.config'));
-    if (!hasPrettier) {
-      try {
-        const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
-        if (pkg.devDependencies?.prettier || pkg.dependencies?.prettier) {
-          spawnSync('npx', ['prettier', '--write', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
-          process.exit(0);
-        }
-      } catch { /* no package.json or parse error */ }
+      formatter = 'Biome';
+      formatted = true;
     } else {
-      spawnSync('npx', ['prettier', '--write', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
-      process.exit(0);
+      const hasPrettier = fs.readdirSync(cwd).some(f => f.startsWith('.prettierrc') || f.startsWith('prettier.config'));
+      if (hasPrettier) {
+        spawnSync('npx', ['prettier', '--write', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+        formatter = 'Prettier';
+        formatted = true;
+      } else {
+        try {
+          const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
+          if (pkg.devDependencies?.prettier || pkg.dependencies?.prettier) {
+            spawnSync('npx', ['prettier', '--write', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+            formatter = 'Prettier';
+            formatted = true;
+          }
+        } catch {}
+      }
     }
   }
 
-  // Python files
   if (ext === '.py') {
-    // Priority 1: Black
     const blackResult = spawnSync('black', ['--check', '--', filePath], { cwd, timeout: 5000, encoding: 'utf8' });
     if (blackResult.error === undefined) {
       spawnSync('black', ['--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
-      process.exit(0);
+      formatter = 'Black';
+      formatted = true;
+    } else {
+      const ruffResult = spawnSync('ruff', ['format', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+      if (ruffResult.error === undefined) {
+        formatter = 'Ruff';
+        formatted = true;
+      }
     }
-    // Priority 2: Ruff format
-    const ruffResult = spawnSync('ruff', ['format', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
-    if (ruffResult.error === undefined) process.exit(0);
+  }
+
+  if (formatted && contentBefore !== null) {
+    let contentAfter = null;
+    try { contentAfter = fs.readFileSync(filePath, 'utf8'); } catch {}
+    if (contentAfter !== null && contentBefore !== contentAfter) {
+      inject(`[auto-format] ${path.basename(filePath)} was reformatted by ${formatter}. No manual formatting needed.`);
+    }
   }
 } catch (e) {
   log(`auto-format error: ${e.message}`);
