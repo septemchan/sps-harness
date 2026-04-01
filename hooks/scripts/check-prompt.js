@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { readStdin, fileExists, getTempDir, hashCwd, log, respond } = require('./lib/utils');
+const { readStdin, fileExists, getTempDir, hashCwd, log, inject } = require('./lib/utils');
 
 const BATCH_THRESHOLD = 10;
 const WINDOW_MS = 30 * 1000; // 30 seconds
@@ -38,7 +38,7 @@ try {
   if (data.count >= BATCH_THRESHOLD && !data.prompted) {
     data.prompted = true;
     fs.writeFileSync(counterFile, JSON.stringify(data));
-    respond(
+    inject(
       '[product-launcher] 检测到大量代码文件写入。建议运行 /check 进行完整度检查。'
     );
   }

@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { readStdin, fileExists, readFile, log, respond } = require('./lib/utils');
+const { readStdin, fileExists, readFile, log, inject } = require('./lib/utils');
 
 try {
   const input = readStdin();
@@ -37,16 +37,16 @@ try {
   const strategy = strategyMatch ? strategyMatch[1].trim() : '';
 
   if (strategy.includes('AI Studio')) {
-    respond(
+    inject(
       '[product-launcher] 实现计划已完成。原型策略为 Google AI Studio。\n' +
       '请调用 product-launcher skill 生成 AI Studio 输入文本和操作引导。'
     );
   } else if (strategy.includes('Agent SDK')) {
-    respond(
+    inject(
       '[product-launcher] 实现计划已完成。原型策略为 Claude Code + Agent SDK，直接进入 executing-plans 开始写代码。'
     );
   } else {
-    respond(
+    inject(
       '[product-launcher] 实现计划已完成。原型策略为 Claude Code，直接进入 executing-plans 开始写代码。'
     );
   }
