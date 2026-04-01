@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { readStdin, fileExists, log, respond } = require('./lib/utils');
+const { readStdin, fileExists, log, inject } = require('./lib/utils');
 
 try {
   const input = readStdin();
@@ -30,7 +30,7 @@ try {
   fs.mkdirSync(path.dirname(markerFile), { recursive: true });
   fs.writeFileSync(markerFile, new Date().toISOString());
 
-  respond(
+  inject(
     '[product-launcher] 设计文档已完成。产品如果有前端界面，建议先调用 ui-ux-pro-max 做专业的 UI 方案（配色、字体、组件库）再进入 writing-plans。\n' +
     '输入 "跳过" 直接进入 writing-plans，或调用 ui-ux-pro-max 开始 UI 设计。'
   );

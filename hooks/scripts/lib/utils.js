@@ -51,4 +51,31 @@ function respond(message) {
   console.log(JSON.stringify({ message }));
 }
 
-module.exports = { fileExists, readFile, readStdin, getTempDir, getSessionId, hashCwd, ensureDir, log, respond };
+function deny(reason) {
+  console.log(JSON.stringify({ permissionBehavior: 'deny', message: reason }));
+}
+
+function inject(context, message) {
+  const result = { additionalContext: context };
+  if (message) result.message = message;
+  console.log(JSON.stringify(result));
+}
+
+function prevent(reason) {
+  console.log(JSON.stringify({ preventContinuation: true, message: reason }));
+}
+
+function stop(reason) {
+  console.log(JSON.stringify({ stopReason: reason }));
+}
+
+function guard(condition, denyReason, passContext) {
+  if (condition) {
+    deny(denyReason);
+    return true;
+  }
+  if (passContext) inject(passContext);
+  return false;
+}
+
+module.exports = { fileExists, readFile, readStdin, getTempDir, getSessionId, hashCwd, ensureDir, log, respond, deny, inject, prevent, stop, guard };

@@ -1,6 +1,6 @@
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { readFile, fileExists, log } = require('./lib/utils');
+const { readFile, fileExists, log, inject } = require('./lib/utils');
 
 try {
   const cwd = process.cwd();
@@ -18,7 +18,7 @@ try {
 
   // Output additionalContext for SessionStart hook
   const context = `Context was just compacted. Here is the saved working state from before compaction. Use this to resume work seamlessly.\n\n${content}`;
-  console.log(JSON.stringify({ additionalContext: context }));
+  inject(context);
 } catch (e) {
   log(`compact-restore error: ${e.message}`);
 }

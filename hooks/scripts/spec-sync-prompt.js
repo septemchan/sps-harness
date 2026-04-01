@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { readStdin, fileExists, log, respond } = require('./lib/utils');
+const { readStdin, fileExists, log, inject } = require('./lib/utils');
 
 try {
   const input = readStdin();
@@ -30,7 +30,7 @@ try {
 
   if (messages.length === 0) process.exit(0);
 
-  respond('[sps-harness] 检测到设计文档变更。\n' + messages.join('\n'));
+  inject('[sps-harness] 检测到设计文档变更。\n' + messages.join('\n'));
 } catch (e) {
   log(`spec-sync-prompt error: ${e.message}`);
 }
