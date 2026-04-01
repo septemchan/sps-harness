@@ -1,12 +1,13 @@
 ---
 name: product-launcher
 description: >
-  Use when converting a PRD into a lightweight Product-Spec.md (/launch),
+  Use when creating a Product-Spec.md from an idea or PRD (/launch),
   checking feature completeness against code (/check),
   or syncing product docs after design changes (/sync).
   Trigger on: "product-launcher", "转化PRD", "convert prd", "product spec",
   "/launch", "/check", "/sync", "检查完整度", "completeness check",
-  "同步产品文档", "sync product spec".
+  "同步产品文档", "sync product spec",
+  "我要做一个产品", "新产品", "start a product", "new product".
   Also trigger when hooks inject [product-launcher] messages.
   Do not trigger for writing or editing PRDs (that is /write-prd's job),
   technical design (brainstorming's job), or UI design (ui-ux-pro-max's job).
