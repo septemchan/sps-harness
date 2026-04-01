@@ -14,113 +14,86 @@ try {
   const hasSpecs = fileExists(specsDir) && fs.readdirSync(specsDir).some(f => f.endsWith('.md'));
   const hasClaudeMd = fileExists(claudeMd) || fileExists(rootClaudeMd);
   const hasProductSpec = fileExists(path.join(cwd, 'Product-Spec.md'));
-  const appDir = path.join(cwd, 'app');
-  const hasAppCode = fs.existsSync(appDir) && fs.readdirSync(appDir).length > 0;
-  const srcDir = path.join(cwd, 'src');
-  const hasSrcCode = fs.existsSync(srcDir) && fs.readdirSync(srcDir).length > 0;
-  const hasCode = hasAppCode || hasSrcCode;
+  const hasCode = (fs.existsSync(path.join(cwd, 'app')) && fs.readdirSync(path.join(cwd, 'app')).length > 0)
+    || (fs.existsSync(path.join(cwd, 'src')) && fs.readdirSync(path.join(cwd, 'src')).length > 0);
 
-  const guidance = [];
-
-  // Signal 1: Has design docs but no CLAUDE.md
-  if (hasSpecs && !hasClaudeMd) {
-    guidance.push('Design docs found but no CLAUDE.md. Run /harvest to generate project configuration.');
-  }
-
-  // Signal 2: No .claude/ at all
-  if (!hasClaudeDir) {
-    guidance.push('No .claude/ architecture yet. Run /harness-audit for setup guidance.');
-  }
-
-  // Signal 3: Has Product-Spec but no code
-  if (hasProductSpec && !hasCode) {
-    guidance.push('Product-Spec.md exists but no app/ or src/ code yet. Project is ready for development (brainstorming → writing-plans → execution).');
-  }
-
-  // Signal 4: Has code but no test files
-  if (hasCode) {
-    const hasTests = fs.existsSync(path.join(cwd, 'tests')) || fs.existsSync(path.join(cwd, '__tests__'));
-    if (!hasTests) {
-      guidance.push('Code exists but no test directory found. Consider using TDD workflow (testing-standards rule).');
+  // Priority-ranked checks — output only the first match
+  const checks = [
+    {
+      condition: () => !hasClaudeDir,
+      message: 'New project detected. Run /harness-audit for setup guidance.'
+    },
+    {
+      condition: () => hasSpecs && !hasClaudeMd,
+      message: 'Design docs found but no CLAUDE.md. Run /harvest to generate.'
+    },
+    {
+      condition: () => hasProductSpec && !hasCode,
+      message: 'Ready for development. Start with brainstorming → writing-plans.'
+    },
+    {
+      condition: () => {
+        if (!fs.existsSync(path.join(cwd, '.git'))) return false;
+        const r = spawnSync('git', ['diff', '--name-only', 'HEAD~3', 'HEAD'], { cwd, timeout: 5000, encoding: 'utf8' });
+        if (!r.stdout) return false;
+        const securityPattern = /\b(auth|login|password|payment|token|secret|credential|session|jwt|oauth)\b/i;
+        return r.stdout.split('\n').some(f => securityPattern.test(f));
+      },
+      message: 'Security-sensitive files changed recently. Consider /security-review.'
+    },
+    {
+      condition: () => {
+        const obsFile = path.join(claudeDir, 'instincts', '.observations.jsonl');
+        if (!fileExists(obsFile)) return false;
+        const content = readFile(obsFile);
+        if (!content) return false;
+        const count = content.split('\n').filter(l => l.trim()).length;
+        return count > 100;
+      },
+      message: () => {
+        const obsFile = path.join(claudeDir, 'instincts', '.observations.jsonl');
+        const content = readFile(obsFile);
+        const count = content.split('\n').filter(l => l.trim()).length;
+        return `${count} operations recorded. Run /learn to discover patterns.`;
+      }
+    },
+    {
+      condition: () => {
+        const activeMd = fileExists(claudeMd) ? claudeMd : (fileExists(rootClaudeMd) ? rootClaudeMd : null);
+        if (!activeMd) return false;
+        const content = readFile(activeMd);
+        if (!content) return false;
+        const dateMatch = content.match(/Last updated:\s*(\d{4}-\d{2}-\d{2})/);
+        if (!dateMatch) return false;
+        const daysSince = Math.floor((Date.now() - new Date(dateMatch[1]).getTime()) / (1000 * 60 * 60 * 24));
+        return daysSince > 30;
+      },
+      message: 'CLAUDE.md may be stale. Consider re-running /harvest.'
+    },
+    {
+      condition: () => {
+        const rulesDir = path.join(cwd, '.claude', 'rules');
+        if (!fileExists(rulesDir)) return false;
+        try {
+          const ruleFiles = fs.readdirSync(rulesDir).filter(f => f.endsWith('.md'));
+          if (ruleFiles.length === 0) return true;
+          const sixMonthsAgo = Date.now() - (180 * 24 * 60 * 60 * 1000);
+          return ruleFiles.some(f => {
+            try { return fs.statSync(path.join(rulesDir, f)).mtimeMs < sixMonthsAgo; }
+            catch { return false; }
+          });
+        } catch { return false; }
+      },
+      message: 'Rules need attention. Run /rules to review.'
     }
-  }
+  ];
 
-  // Signal 5: Observations > 100
-  const obsFile = path.join(claudeDir, 'instincts', '.observations.jsonl');
-  if (fileExists(obsFile)) {
-    const content = readFile(obsFile);
-    if (content) {
-      const lineCount = content.split('\n').filter(l => l.trim()).length;
-      if (lineCount > 100) {
-        guidance.push(`${lineCount} operations recorded. Run /learn to discover work patterns.`);
-      }
+  for (const check of checks) {
+    if (check.condition()) {
+      const msg = typeof check.message === 'function' ? check.message() : check.message;
+      inject(`[sps-harness] ${msg}`);
+      break;
     }
-  }
-
-  // Signal 6: .compact/state file exists
-  if (fs.existsSync(path.join(cwd, '.compact'))) {
-    try {
-      const compactFiles = fs.readdirSync(path.join(cwd, '.compact')).filter(f => f.startsWith('state-'));
-      if (compactFiles.length > 0) {
-        guidance.push('Previous compaction state found. Context restoration will happen automatically.');
-      }
-    } catch {}
-  }
-
-  // Signal 7: Security-related files changed recently
-  if (fs.existsSync(path.join(cwd, '.git'))) {
-    const r = spawnSync('git', ['diff', '--name-only', 'HEAD~3', 'HEAD'], { cwd, timeout: 5000, encoding: 'utf8' });
-    if (r.stdout) {
-      const securityPattern = /\b(auth|login|password|payment|token|secret|credential|session|jwt|oauth)\b/i;
-      const changedFiles = r.stdout.split('\n').filter(f => securityPattern.test(f));
-      if (changedFiles.length > 0) {
-        guidance.push(`Security-sensitive files changed recently: ${changedFiles.slice(0, 3).join(', ')}. Consider running /security-review.`);
-      }
-    }
-  }
-
-  // Signal 8: Rules stale or missing
-  const rulesDir = path.join(cwd, '.claude', 'rules');
-  if (fileExists(rulesDir)) {
-    try {
-      const ruleFiles = fs.readdirSync(rulesDir).filter(f => f.endsWith('.md'));
-      if (ruleFiles.length === 0) {
-        guidance.push('Rules directory exists but is empty. Run /rules to add project rules.');
-      } else {
-        const sixMonthsAgo = Date.now() - (180 * 24 * 60 * 60 * 1000);
-        const staleRules = ruleFiles.filter(f => {
-          try {
-            const stat = fs.statSync(path.join(rulesDir, f));
-            return stat.mtimeMs < sixMonthsAgo;
-          } catch { return false; }
-        });
-        if (staleRules.length > 0) {
-          guidance.push(`${staleRules.length} rule file(s) not updated in 6+ months. Run /rules to review.`);
-        }
-      }
-    } catch {}
-  }
-
-  // Signal 9: CLAUDE.md stale
-  const activeMd = fileExists(claudeMd) ? claudeMd : (fileExists(rootClaudeMd) ? rootClaudeMd : null);
-  if (activeMd) {
-    const content = readFile(activeMd);
-    if (content) {
-      const dateMatch = content.match(/Last updated:\s*(\d{4}-\d{2}-\d{2})/);
-      if (dateMatch) {
-        const lastUpdated = new Date(dateMatch[1]);
-        const daysSince = Math.floor((Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24));
-        if (daysSince > 30) {
-          guidance.push(`CLAUDE.md last updated ${daysSince} days ago. Consider re-running /harvest to sync.`);
-        }
-      }
-    }
-  }
-
-  // Output
-  if (guidance.length > 0) {
-    const context = '[sps-harness project status]\n' + guidance.map((g, i) => `${i + 1}. ${g}`).join('\n');
-    inject(context);
   }
 } catch (e) {
   log(`session-start error: ${e.message}`);
