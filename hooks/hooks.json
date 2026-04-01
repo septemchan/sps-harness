@@ -20,6 +20,13 @@
         ]
       }
     ],
+    "PostCompact": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/post-compact.js\"", "timeout": 3000 }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "hooks": [
