@@ -5,15 +5,15 @@ Core methodology for writing and maintaining .claude/ rules, skills, and hooks.
 ### Rule Writing Standards
 
 1. **Positive language**: State what to do, not what to avoid.
-   - Good: "Write titles in 15-25 characters"
-   - Bad: "Don't exceed 25 characters"
+   - Good: `Write titles in 15-25 characters`
+   - Bad: `Don't exceed 25 characters`
 
 2. **Include reasoning**: Every rule states why, because Claude follows reasoned rules more reliably.
    - Format: `Do X because Y`
 
 3. **Range constraints**: Use ranges to give Claude calibration room.
-   - Good: "25-35 frames per scene"
-   - Bad: "max 35 frames"
+   - Good: `25-35 frames per scene`
+   - Bad: `max 35 frames`
 
 4. **Origin tracking**: Tag each rule so future audits know the source.
    - Format: `<!-- Added: YYYY-MM-DD | Reason: ... -->`

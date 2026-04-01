@@ -17,6 +17,6 @@ Write three types of tests:
 - **Integration tests**: API endpoints, database operations
 - **E2E tests**: critical user flows (login, checkout, core workflows)
 
-When a test fails: check test isolation first, then verify mocks are correct, then fix the implementation. Fix the code to match the test, not the other way around (unless the test itself is wrong).
+When a test fails: check test isolation first, then verify mocks are correct, then fix the implementation to satisfy the test (unless the test specification itself is incorrect).
 
 <!-- Added: 2026-03-30 | Source: ECC testing.md adapted for Superpowers ecosystem | Reason: 建立测试纪律基线 -->
