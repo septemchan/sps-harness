@@ -78,4 +78,21 @@ function guard(condition, denyReason, passContext) {
   return false;
 }
 
-module.exports = { fileExists, readFile, readStdin, getTempDir, getSessionId, hashCwd, ensureDir, log, respond, deny, inject, prevent, stop, guard };
+function detectProjectType(cwd) {
+  const p = (f) => path.join(cwd, f);
+  if (fs.existsSync(p('package.json')) || fs.existsSync(p('tsconfig.json'))) return 'js';
+  if (fs.existsSync(p('pyproject.toml')) || fs.existsSync(p('requirements.txt'))) return 'python';
+  if (fs.existsSync(p('go.mod'))) return 'go';
+  if (fs.existsSync(p('Cargo.toml'))) return 'rust';
+  return null;
+}
+
+function toolExists(name) {
+  const cmd = process.platform === 'win32' ? 'where' : 'which';
+  try {
+    const r = require('child_process').spawnSync(cmd, [name], { timeout: 3000, encoding: 'utf8' });
+    return r.status === 0;
+  } catch { return false; }
+}
+
+module.exports = { fileExists, readFile, readStdin, getTempDir, getSessionId, hashCwd, ensureDir, log, respond, deny, inject, prevent, stop, guard, detectProjectType, toolExists };
