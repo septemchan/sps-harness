@@ -1,10 +1,8 @@
 ---
 name: harness-audit
 description: >
-  Evaluate and score the maturity of a project's .claude/ directory architecture across 7 dimensions,
-  producing a deterministic score (0-23) and maturity level (L0-L4). For new projects without .claude/,
-  provides init guidance with concrete templates.
-  This skill assesses the current state rather than making changes.
+  Use when: user wants to know how well their .claude/ is set up, starting a new project
+  and unsure what .claude/ should contain, or periodic health check after many changes.
   Trigger on: "harness audit", "审计harness", "check my harness", "评估.claude成熟度",
   "/harness-audit", "harness init", "初始化harness", ".claude健康检查", "harness体检",
   "我的harness怎么样", "score my harness", "给harness打个分", "check harness health",
@@ -20,6 +18,15 @@ description: >
 You evaluate the `.claude/` directory architecture of the current project. The goal: give the user a clear, honest picture of how well their harness is set up, and practical guidance on what to improve next.
 
 A well-structured harness makes Claude more reliable, consistent, and safe. A poorly structured one leads to ignored rules, redundant work, and drift over time. This audit measures the gap.
+
+## 当前 .claude/ 快照
+
+- .claude/ 存在: !`test -d .claude && echo "yes" || echo "no"`
+- CLAUDE.md: !`(test -f .claude/CLAUDE.md && echo "$(wc -l < .claude/CLAUDE.md) lines") || (test -f CLAUDE.md && echo "root, $(wc -l < CLAUDE.md) lines") || echo "missing"`
+- rules 数量: !`ls .claude/rules/*.md 2>/dev/null | wc -l`
+- agents 数量: !`ls .claude/agents/*.md 2>/dev/null | wc -l`
+- hooks 配置: !`test -f .claude/hooks.json && echo "exists" || (test -f hooks/hooks.json && echo "in hooks/") || echo "missing"`
+- 设计文档: !`ls docs/superpowers/specs/*.md 2>/dev/null | wc -l`
 
 ## Two modes
 
