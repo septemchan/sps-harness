@@ -8,7 +8,7 @@ Complements Superpowers with capabilities it doesn't cover:
 
 - **Coding standards** — built-in rules for code quality, testing, security, and git workflow
 - **Project config generation** — `/harvest` reads design docs and generates `.claude/CLAUDE.md`
-- **Automated quality checks** — auto-format, typecheck, lint gates on code edits
+- **Automated quality checks** — auto-format, typecheck, lint gates on code edits (JS/TS, Python, Go, Rust)
 - **Commit safety** — message format check, console.log detection, secret leak scanning
 - **Security review** — read-only agent that audits authentication, payment, and data handling
 - **Learning** — extracts work patterns from operation records into actionable rules
@@ -41,7 +41,7 @@ Restart Claude Code after installation. The plugin loads globally — all projec
 |---|---|---|
 | Agent | 1 | security-reviewer (read-only, cross-session memory) |
 | Skills | 7 | harness-audit, harvest, product-drafter, product-launcher, prompt-audit, strategic-compact, verification-loop |
-| Hooks | 9 | auto-format, typecheck, quality-gate, commit-guard, block-no-verify, completion-guard, suggest-compact, observe, session-start |
+| Hooks | 10 | auto-format, typecheck, quality-gate, commit-guard, block-no-verify, completion-guard, suggest-compact, observe, session-start, post-compact |
 | Commands | 6 | /harvest, /security-review, /harness-audit, /save-compact, /learn, /rules |
 | Rules | 8 | coding-standards, testing-standards, security-standards, git-standards, workflow-map, harness-method, noise-filter, project-structure |
 
