@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { fileExists, readStdin, log, inject } = require('./lib/utils');
+const { fileExists, readStdin, log, inject, toolExists } = require('./lib/utils');
 
 try {
   const input = readStdin();
@@ -18,7 +18,7 @@ try {
   }
 
   // Code files → run file-level linter and inject results
-  const codeExts = ['.ts', '.tsx', '.js', '.jsx', '.py'];
+  const codeExts = ['.ts', '.tsx', '.js', '.jsx', '.py', '.go', '.rs'];
   if (!codeExts.includes(ext)) process.exit(0);
 
   let lintOutput = '';
@@ -33,6 +33,22 @@ try {
   } else if (ext === '.py') {
     const r = spawnSync('ruff', ['check', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
     if (r.status !== 0 && r.stdout) { lintOutput = r.stdout.slice(0, 500); linterName = 'Ruff'; }
+  } else if (ext === '.go') {
+    if (toolExists('golangci-lint')) {
+      const r = spawnSync('golangci-lint', ['run', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+      if (r.status !== 0 && r.stdout) { lintOutput = r.stdout.slice(0, 500); linterName = 'golangci-lint'; }
+    } else if (toolExists('go')) {
+      const r = spawnSync('go', ['vet', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+      if (r.status !== 0 && r.stderr) { lintOutput = r.stderr.slice(0, 500); linterName = 'go vet'; }
+    }
+  } else if (ext === '.rs') {
+    if (toolExists('cargo')) {
+      const r = spawnSync('cargo', ['clippy', '--', '-W', 'clippy::all'], { cwd, timeout: 15000, encoding: 'utf8' });
+      if (r.status !== 0) {
+        const out = (r.stdout || r.stderr || '').slice(0, 500);
+        if (out.trim()) { lintOutput = out; linterName = 'cargo clippy'; }
+      }
+    }
   }
 
   if (lintOutput) {
