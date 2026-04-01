@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { fileExists, readStdin, log, inject } = require('./lib/utils');
+const { fileExists, readStdin, log, inject, toolExists } = require('./lib/utils');
 
 try {
   const input = readStdin();
@@ -54,6 +54,22 @@ try {
         formatter = 'Ruff';
         formatted = true;
       }
+    }
+  }
+
+  if (ext === '.go') {
+    if (toolExists('gofmt')) {
+      spawnSync('gofmt', ['-w', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+      formatter = 'gofmt';
+      formatted = true;
+    }
+  }
+
+  if (ext === '.rs') {
+    if (toolExists('cargo')) {
+      spawnSync('cargo', ['fmt', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+      formatter = 'cargo fmt';
+      formatted = true;
     }
   }
 
