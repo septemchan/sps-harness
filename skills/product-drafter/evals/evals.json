@@ -1,0 +1,64 @@
+{
+  "skill_name": "product-drafter",
+  "evals": [
+    {
+      "id": 0,
+      "name": "eval-clear-idea",
+      "prompt": "我想做一个给自由职业设计师用的接单管理工具，客户经常用微信发需求，很零散，容易漏",
+      "expected_output": "完整的 Product-Spec.md，功能围绕接单管理、需求收集，不包含 AI 系统提示词章节",
+      "files": [],
+      "assertions": [
+        {"text": "模板结构完整：包含产品说明、项目结构、功能清单、用户流程、数据模型、第三方依赖、非功能需求、原型策略", "type": "structural"},
+        {"text": "无残留 {{...}} 占位符", "type": "structural"},
+        {"text": "功能清单区分核心功能和辅助功能", "type": "structural"},
+        {"text": "存在不做（MVP 边界）清单，至少 2 项", "type": "structural"},
+        {"text": "用户流程包含异常/错误处理", "type": "content"},
+        {"text": "用户流程区分首次使用和日常使用路径", "type": "content"},
+        {"text": "数据模型包含至少 1 个具体实体（有字段定义）", "type": "content"},
+        {"text": "核心功能和辅助功能使用 - [ ] checkbox 格式", "type": "structural"},
+        {"text": "核心价值中包含与现有方案的对比（为什么比现有方案好）", "type": "content"},
+        {"text": "非 AI 产品，不包含 AI 系统提示词章节", "type": "content"}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "eval-vague-idea",
+      "prompt": "我需要一个 AI dashboard",
+      "expected_output": "完整的 Product-Spec.md，产品说明应该描述具体用户和问题，而非简单的 'AI Dashboard'",
+      "files": [],
+      "assertions": [
+        {"text": "模板结构完整：包含产品说明、项目结构、功能清单、用户流程、数据模型、第三方依赖、非功能需求、原型策略", "type": "structural"},
+        {"text": "无残留 {{...}} 占位符", "type": "structural"},
+        {"text": "功能清单区分核心功能和辅助功能", "type": "structural"},
+        {"text": "存在不做（MVP 边界）清单，至少 2 项", "type": "structural"},
+        {"text": "用户流程包含异常/错误处理", "type": "content"},
+        {"text": "用户流程区分首次使用和日常使用路径", "type": "content"},
+        {"text": "数据模型包含至少 1 个具体实体（有字段定义）", "type": "content"},
+        {"text": "核心功能和辅助功能使用 - [ ] checkbox 格式", "type": "structural"},
+        {"text": "核心价值中包含与现有方案的对比（为什么比现有方案好）", "type": "content"},
+        {"text": "产品说明的一句话描述中不出现 dashboard 一词，而是描述了具体用户群体和他们面临的问题", "type": "content"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "eval-ai-product",
+      "prompt": "我想做一个 AI 帮我自动回复客户消息的工具，接入微信，能根据我的业务知识库回答问题",
+      "expected_output": "完整的 Product-Spec.md，包含 AI 系统提示词章节（角色定义、工作流程规则、回复规范、约束条件），原型策略含 AI 路线",
+      "files": [],
+      "assertions": [
+        {"text": "模板结构完整：包含产品说明、项目结构、功能清单、用户流程、数据模型、第三方依赖、非功能需求、原型策略", "type": "structural"},
+        {"text": "无残留 {{...}} 占位符", "type": "structural"},
+        {"text": "功能清单区分核心功能和辅助功能", "type": "structural"},
+        {"text": "存在不做（MVP 边界）清单，至少 2 项", "type": "structural"},
+        {"text": "用户流程包含异常/错误处理", "type": "content"},
+        {"text": "用户流程区分首次使用和日常使用路径", "type": "content"},
+        {"text": "数据模型包含至少 1 个具体实体（有字段定义）", "type": "content"},
+        {"text": "核心功能和辅助功能使用 - [ ] checkbox 格式", "type": "structural"},
+        {"text": "核心价值中包含与现有方案的对比（为什么比现有方案好）", "type": "content"},
+        {"text": "AI 系统提示词章节包含角色定义、工作流程规则、回复规范、约束条件四个子章节", "type": "content"},
+        {"text": "第三方依赖标注了关键约束（收费模式或接入门槛或认证要求）", "type": "content"},
+        {"text": "原型策略提到 AI 相关的技术选择", "type": "content"}
+      ]
+    }
+  ]
+}
