@@ -14,7 +14,8 @@ Route to the right tool at each stage:
 
 ### 3. Product Spec（产品开发时）
 - 有 PRD，需要转化 → /launch（从 PRD 审查转化）
-- 没有 PRD，从想法开始 → /launch（从对话收集）
+- 没有 PRD，从想法开始 → /launch（自动链式调用 product-drafter）
+- 也可以直接调用 product-drafter
 - Has Product-Spec.md, needs design → brainstorming（Superpowers）
 - Brainstorming done, has frontend → consider ui-ux-pro-max before writing-plans
 - Code exists, need status → /check（product-launcher）
