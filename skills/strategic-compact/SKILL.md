@@ -1,6 +1,11 @@
 ---
 name: strategic-compact
-description: Guide context compaction so critical state survives and work resumes seamlessly. Use when the suggest-compact hook fires, the user runs /save-compact, context feels long, or you notice yourself forgetting earlier conversation details. Also use after a context reset to recover state.
+description: >
+  Use when: suggest-compact hook fires, user says /save-compact or "保存上下文",
+  context feels long and you notice forgetting earlier conversation details,
+  or recovering after a context reset.
+  Do not trigger for: routine /compact without state saving,
+  or when conversation is short and no state worth preserving.
 ---
 
 # Strategic Compact
