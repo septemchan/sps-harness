@@ -1,6 +1,14 @@
 ---
 name: verification-loop
 description: Run a 6-phase full-project verification (build, types, lint, tests, security, diff review) to check overall project health. Trigger when the user wants a broad project-wide check before merging, releasing, or creating a PR, or after completing a feature/bugfix. Trigger phrases include "verify", "run checks", "audit the project", "check everything", "pre-PR check", "harness audit", "is the project ready", "帮我检查一下项目", "全面检查", "跑通吗", "有没有问题". Also trigger when the user expresses anxiety about breaking things after a large change and wants the whole codebase validated. Skip when the user is: reviewing a specific GitHub PR, writing or adding tests, setting up or configuring linters/tools, fixing a single known bug or type error, code migration, or investigating a specific CI pipeline failure.
+context: fork
+hooks:
+  Stop:
+    - type: prompt
+      prompt: >
+        Before reporting results, confirm: every PASS phase has the actual
+        command output quoted as evidence. No phase can be marked PASS without
+        showing the real terminal output.
 ---
 
 # Verification Loop
