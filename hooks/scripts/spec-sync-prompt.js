@@ -14,19 +14,23 @@ try {
   const normalizedPath = path.resolve(filePath).toLowerCase();
   if (!normalizedPath.startsWith(specsDir)) process.exit(0);
 
-  // Only trigger if Product-Spec.md exists
-  if (!fileExists(path.join(cwd, 'Product-Spec.md'))) process.exit(0);
-
-  // Only trigger during iteration phase (app/ has code)
+  const hasProductSpec = fileExists(path.join(cwd, 'Product-Spec.md'));
   const appDir = path.join(cwd, 'app');
-  if (!fs.existsSync(appDir)) process.exit(0);
-  const contents = fs.readdirSync(appDir);
-  if (contents.length === 0) process.exit(0);
+  const hasCode = fs.existsSync(appDir) && fs.readdirSync(appDir).length > 0;
 
-  respond(
-    '[product-launcher] 检测到设计文档变更。请同步更新 Product-Spec.md 和 Product-Changelog.md。\n' +
-    '调用 /sync 自动同步，或手动更新。'
-  );
+  const messages = [];
+
+  // Iteration phase: remind to sync Product-Spec
+  if (hasProductSpec && hasCode) {
+    messages.push('请同步更新 Product-Spec.md 和 Product-Changelog.md。调用 /sync 自动同步，或手动更新。');
+  }
+
+  // Always remind about harvest when design docs change
+  messages.push('CLAUDE.md 可能需要更新。调用 /harvest 从设计文档同步项目配置。');
+
+  if (messages.length === 0) process.exit(0);
+
+  respond('[sps-harness] 检测到设计文档变更。\n' + messages.join('\n'));
 } catch (e) {
   log(`spec-sync-prompt error: ${e.message}`);
 }
