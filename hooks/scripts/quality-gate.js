@@ -25,10 +25,10 @@ try {
   let linterName = '';
 
   if (fileExists(path.join(cwd, 'biome.json'))) {
-    const r = spawnSync('npx', ['biome', 'check', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+    const r = spawnSync('npx', ['biome', 'check', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8', shell: true });
     if (r.status !== 0 && r.stderr) { lintOutput = r.stderr.slice(0, 500); linterName = 'Biome'; }
   } else if (fs.readdirSync(cwd).some(f => f.startsWith('.eslintrc') || f.startsWith('eslint.config'))) {
-    const r = spawnSync('npx', ['eslint', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+    const r = spawnSync('npx', ['eslint', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8', shell: true });
     if (r.status !== 0 && r.stdout) { lintOutput = r.stdout.slice(0, 500); linterName = 'ESLint'; }
   } else if (ext === '.py') {
     const r = spawnSync('ruff', ['check', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });

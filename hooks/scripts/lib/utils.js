@@ -11,10 +11,22 @@ function readFile(p) {
   try { return fs.readFileSync(p, 'utf8'); } catch { return null; }
 }
 
+let _stdinCache = undefined;
+
+function _getStdin() {
+  if (_stdinCache === undefined) {
+    try { _stdinCache = JSON.parse(fs.readFileSync(0, 'utf8')); }
+    catch { _stdinCache = {}; }
+  }
+  return _stdinCache;
+}
+
 function readStdin() {
-  // Use fd 0 instead of /dev/stdin for Windows compatibility
-  try { return JSON.parse(fs.readFileSync(0, 'utf8')); }
-  catch { return {}; }
+  return _getStdin();
+}
+
+function _getEventName() {
+  return _getStdin().hook_event_name || 'PostToolUse';
 }
 
 function getTempDir() {
@@ -47,26 +59,49 @@ function log(msg) {
 }
 
 function respond(message) {
-  // Claude Code hook response format
-  console.log(JSON.stringify({ message }));
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: _getEventName(),
+      additionalContext: message
+    }
+  }));
 }
 
 function deny(reason) {
-  console.log(JSON.stringify({ permissionBehavior: 'deny', message: reason }));
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: _getEventName(),
+      permissionDecision: 'deny',
+      permissionDecisionReason: reason
+    }
+  }));
 }
 
-function inject(context, message) {
-  const result = { additionalContext: context };
-  if (message) result.message = message;
-  console.log(JSON.stringify(result));
+function inject(context) {
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: _getEventName(),
+      additionalContext: context
+    }
+  }));
 }
 
 function prevent(reason) {
-  console.log(JSON.stringify({ preventContinuation: true, message: reason }));
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: _getEventName(),
+      additionalContext: reason
+    },
+    continue: false,
+    stopReason: reason
+  }));
 }
 
 function stop(reason) {
-  console.log(JSON.stringify({ stopReason: reason }));
+  console.log(JSON.stringify({
+    decision: 'block',
+    reason: reason
+  }));
 }
 
 function guard(condition, denyReason, passContext) {

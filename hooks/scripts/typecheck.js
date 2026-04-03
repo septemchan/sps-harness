@@ -37,7 +37,7 @@ try {
     process.exit(0);
   }
 
-  const r = spawnSync(cmd, args, { cwd, timeout: 15000, encoding: 'utf8' });
+  const r = spawnSync(cmd, args, { cwd, timeout: 15000, encoding: 'utf8', shell: true });
   if (r.status !== 0) {
     const output = (r.stdout || r.stderr || '').slice(0, 1000);
     if (output.trim()) {

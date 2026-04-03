@@ -20,20 +20,20 @@ try {
   const jsExts = ['.ts', '.tsx', '.js', '.jsx', '.json', '.css', '.scss'];
   if (jsExts.includes(ext)) {
     if (fileExists(path.join(cwd, 'biome.json')) || fileExists(path.join(cwd, 'biome.jsonc'))) {
-      spawnSync('npx', ['biome', 'format', '--write', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+      spawnSync('npx', ['biome', 'format', '--write', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8', shell: true });
       formatter = 'Biome';
       formatted = true;
     } else {
       const hasPrettier = fs.readdirSync(cwd).some(f => f.startsWith('.prettierrc') || f.startsWith('prettier.config'));
       if (hasPrettier) {
-        spawnSync('npx', ['prettier', '--write', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+        spawnSync('npx', ['prettier', '--write', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8', shell: true });
         formatter = 'Prettier';
         formatted = true;
       } else {
         try {
           const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
           if (pkg.devDependencies?.prettier || pkg.dependencies?.prettier) {
-            spawnSync('npx', ['prettier', '--write', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+            spawnSync('npx', ['prettier', '--write', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8', shell: true });
             formatter = 'Prettier';
             formatted = true;
           }
@@ -45,11 +45,11 @@ try {
   if (ext === '.py') {
     const blackResult = spawnSync('black', ['--check', '--', filePath], { cwd, timeout: 5000, encoding: 'utf8' });
     if (blackResult.error === undefined) {
-      spawnSync('black', ['--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+      spawnSync('black', ['--', filePath], { cwd, timeout: 10000, encoding: 'utf8', shell: true });
       formatter = 'Black';
       formatted = true;
     } else {
-      const ruffResult = spawnSync('ruff', ['format', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+      const ruffResult = spawnSync('ruff', ['format', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8', shell: true });
       if (ruffResult.error === undefined) {
         formatter = 'Ruff';
         formatted = true;
@@ -59,7 +59,7 @@ try {
 
   if (ext === '.go') {
     if (toolExists('gofmt')) {
-      spawnSync('gofmt', ['-w', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+      spawnSync('gofmt', ['-w', filePath], { cwd, timeout: 10000, encoding: 'utf8', shell: true });
       formatter = 'gofmt';
       formatted = true;
     }
@@ -67,7 +67,7 @@ try {
 
   if (ext === '.rs') {
     if (toolExists('cargo')) {
-      spawnSync('cargo', ['fmt', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8' });
+      spawnSync('cargo', ['fmt', '--', filePath], { cwd, timeout: 10000, encoding: 'utf8', shell: true });
       formatter = 'cargo fmt';
       formatted = true;
     }
