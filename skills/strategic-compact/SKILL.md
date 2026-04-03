@@ -22,7 +22,7 @@ Compact at **logical boundaries**, moments where "what's done" and "what's next"
 - Design done, about to start coding
 - A feature is complete and tested, moving to the next
 
-Don't compact when you're halfway through implementing something, actively debugging without a root cause, or waiting for the user to answer a question. If the suggest-compact reminder fires and you're not at a boundary, acknowledge it and compact at the next one.
+Don't compact mid-task (you'd lose in-progress state that can't be reconstructed from files), mid-debug before identifying the root cause (the debugging context is the most valuable thing to preserve), or while awaiting a user answer (compact after they respond, so their answer is captured). Instead, compact at the logical boundaries described above. If the suggest-compact reminder fires and you're not at a boundary, acknowledge it and compact at the next one.
 
 ## What survives (no action needed)
 
@@ -34,6 +34,7 @@ Everything only in your head will be lost: intermediate reasoning, verbal decisi
 
 **1. Save state** to `.compact/state-{branch}.md` (use the current git branch name, so multiple sessions on different branches don't overwrite each other):
 
+<example title="compact-state-file">
 ```markdown
 # Compact State — {date}
 ## Current task
@@ -49,10 +50,15 @@ Everything only in your head will be lost: intermediate reasoning, verbal decisi
 ## Open questions
 - [Unresolved items]
 ```
+</example>
+
+If you are uncertain about a decision or finding recorded in the state file (e.g., you can no longer find the conversation turn where it was made), add a note: `[uncertain — verify with user]`.
 
 **2. Update TodoWrite** to reflect actual progress.
 
 **3. Commit or stash** meaningful uncommitted work, even as a WIP commit.
+
+**4. Verify**: Read back `.compact/state-{branch}.md` and confirm it contains all expected sections. If the file is missing or empty, do not compact — report the write failure to the user.
 
 ## After compaction
 

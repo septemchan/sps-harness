@@ -1,5 +1,7 @@
 ## Workflow Map
 
+When routing to a tool or skill, state the recommendation explicitly to the user and wait for confirmation before invoking.
+
 Route to the right tool at each stage:
 
 ### 1. New Project
@@ -42,7 +44,7 @@ Route to the right tool at each stage:
 - Session ending → completion-guard hook (security files → hard stop, 3+ code files → suggests /verify)
 - ~50 tool calls → suggest-compact hook
 - All operations → observe hook (recording)
-- 危险命令 (rm -rf, --no-verify, git push --force) → settings.json permissions.deny (权限层拦截)
+- 危险命令 (rm -rf, --no-verify, git push --force) → settings.json permissions.deny blocks these automatically. If you detect these patterns before the hook fires, warn the user immediately.
 
 ### 7. Security Review
 - Auth/payment/user data changes → /security-review (cross-session memory, tracks false positives)
@@ -51,7 +53,3 @@ Route to the right tool at each stage:
 - Extract patterns → /learn
 - Manage rules → /rules
 - Compress context → /save-compact
-
-### Work Mode Routing
-- Building .claude/ architecture: harness-audit → /rules → prompt-audit → /harness-audit (iterate)
-- Writing code/products: /launch → brainstorming → writing-plans → SDD → /verify → /compliance-review (if needed) → /security-review (if needed)

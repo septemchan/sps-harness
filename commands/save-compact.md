@@ -1,6 +1,7 @@
-Run the strategic-compact skill to safely compress context at a logical boundary.
+Save current working state and compress context at a logical boundary.
 
-Steps:
-1. Follow the "Before compacting" section from the strategic-compact skill (save state to `.compact/state-{branch}.md`, update TodoWrite, commit/stash dirty work)
-2. Once state is saved, run Claude Code's built-in /compact to compress context
-3. After compaction, follow the "After compaction" recovery steps (read state file, check TodoWrite, read working files, confirm with user)
+Goal: persist all in-progress work before compaction so it can be recovered afterward.
+
+1. Follow the "Before compacting" workflow from the strategic-compact skill (save state to `.compact/state-{branch}.md`, update todos). If there are uncommitted changes, confirm with the user before committing or stashing.
+2. Invoke the built-in /compact command to compress context.
+3. Follow the "After compaction" recovery steps from the strategic-compact skill (read state file, check todos, read working files, confirm with user).

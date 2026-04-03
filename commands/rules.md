@@ -12,4 +12,15 @@ When adding rules, follow these standards:
 - Use range constraints ("25-35 frames" not "max 35")
 - Tag with origin: <!-- Added: YYYY-MM-DD | Reason: ... -->
 
-For deep diagnosis (why a rule isn't working, escalation chain), use PWF or OpenSpec instead.
+<example>
+Good: "Write commit messages in imperative mood because git log reads as a changelog."
+Bad: "Don't write commit messages in past tense."
+</example>
+
+For deep diagnosis (why a rule isn't working, escalation chain), use PWF or OpenSpec instead, because /rules handles quick CRUD operations and cannot trace rule execution across sessions.
+
+Output format:
+
+/rules — Table with columns: Name | File | Status (active / stale / never-triggered)
+
+/rules check — List of contradictions, stale rules, and never-triggered rules with evidence for each

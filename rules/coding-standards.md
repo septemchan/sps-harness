@@ -17,4 +17,6 @@ Before marking work complete, verify:
 - Errors handled explicitly
 - No hardcoded values (use constants or config)
 
+When a check fails, note the specific file and violation inline before proceeding.
+
 <!-- Added: 2026-03-30 | Source: ECC coding-style.md adapted for Superpowers ecosystem | Reason: 提供通用编码基线 -->

@@ -62,21 +62,29 @@ When scanning a skill directory, read each `.md` file's full content, then class
    - Single file mode: read the target file (or the currently open note if none specified).
    - Directory or batch mode: list all `.md` files under the target directory. For each file, apply the pre-filter, then read its content and classify it per **File classification**. Build the audit queue from instruction files and template files.
 2. **Auditability check**: For each file in the queue, skip pure data files (JSON/CSV), code files (.js/.py/.ts), or content under 100 characters. For very short content, produce only INFO-level observations.
-3. **Identify file type**: Determine the file type using path-based detection:
-   - File named `CLAUDE.md` or `CLAUDE.local.md` → CLAUDE.md type
-   - Path matches `.claude/rules/*.md` → CLAUDE.md type
-   - File named `SKILL.md` under `.claude/skills/` or `~/.claude/skills/` → Skill type
-   - Path matches `.claude/agents/*.md` → Agent type
-   - None of the above → generic prompt type (use existing instruction/template/data classification)
-4. **Location check**: Scan content for frontmatter fields that indicate a specific file type. If content features don't match the path-based type, flag G-W9.
-5. **Load rules**: Read `references/rules-global.md`, then load the type-specific rules file:
+
+### Classification criteria
+
+A file's type is determined by two complementary signals applied together:
+
+**Path-based signal** — use the file's location to establish a baseline type:
+- File named `CLAUDE.md` or `CLAUDE.local.md` → CLAUDE.md type
+- Path matches `.claude/rules/*.md` → CLAUDE.md type
+- File named `SKILL.md` under `.claude/skills/` or `~/.claude/skills/` → Skill type
+- Path matches `.claude/agents/*.md` → Agent type
+- None of the above → generic prompt type (use existing instruction/template/data classification)
+
+**Content-based signal** — scan frontmatter fields for type indicators. If content features do not match the path-based type, flag G-W9.
+
+3. **Load rules**: Read `references/rules-global.md`, then load the type-specific rules file:
    - CLAUDE.md type → also read `references/rules-claude-md.md`
    - Skill type → also read `references/rules-skill-md.md`
    - Agent type → also read `references/rules-agent-md.md`
    - Generic prompt → global rules only
-6. **Audit each file**: Run ALL applicable rules against the content — both global rules and type-specific rules. Do not stop after finding global-level issues; always complete the type-specific checks as well (e.g., a CLAUDE.md with many G-E1 violations still needs C-E1 line count checked). Apply the false positive mitigation checks before reporting each finding. For template files, only produce INFO-level observations.
-7. **Uncertainty handling**: If you are uncertain whether a pattern constitutes a violation, note your uncertainty in the finding rather than reporting it as a confident match. Err on the side of not flagging borderline cases as ERROR; use WARNING or INFO instead and explain your reasoning.
-8. **Produce report**: For a single file, use the standard report format. For a directory or batch, produce a per-file report for each auditable file, then append a summary table (see report formats below).
+4. **Audit each file**: Run ALL applicable rules against the content — both global rules and type-specific rules. Do not stop after finding global-level issues; always complete the type-specific checks as well (e.g., a CLAUDE.md with many G-E1 violations still needs C-E1 line count checked). Apply the false positive mitigation checks before reporting each finding. For template files, only produce INFO-level observations.
+5. **Uncertainty handling**: If you are uncertain whether a pattern constitutes a violation, note your uncertainty in the finding rather than reporting it as a confident match. Err on the side of not flagging borderline cases as ERROR; use WARNING or INFO instead and explain your reasoning.
+6. **Pre-report check**: Before producing the report, confirm that every rule in the loaded rules files has been explicitly evaluated. For rules with no finding, confirm they were checked and note them as passing (do not silently omit them from the evaluation).
+7. **Produce report**: For a single file, use the standard report format. For a directory or batch, produce a per-file report for each auditable file, then append a summary table (see report formats below).
 
 ## Report format
 
@@ -176,6 +184,12 @@ Before reporting any finding, apply these checks:
 8. **Agent generic role**: For A-W2, only flag when the description uses generic role words ("engineer", "developer", "analyst") AND does not bind them to a specific functional domain. Clear task scope descriptions override generic naming.
 
 ---
+
+## 已知问题
+
+- 审计压缩或生成的文件可能产生误报
+- rules 文件缺失时会跳过对应规则集
+- 非标准目录结构的 skill 可能被错误分类
 
 ## Rule version
 

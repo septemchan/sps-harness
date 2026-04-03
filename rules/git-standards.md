@@ -15,6 +15,8 @@ When creating pull requests:
 3. Include a test plan with specific verification steps
 4. Push with `-u` flag for new branches
 
-Use feature branches for all work. Create branches from main, merge back via PR. Avoid pushing directly to main, because direct pushes bypass review and can introduce regressions.
+Use feature branches for all changes; merge to main via PR, because direct pushes bypass review and can introduce regressions.
+
+Commit format is enforced by commit-guard hook; this rule serves as fallback guidance when the hook is unavailable.
 
 <!-- Added: 2026-03-30 | Source: ECC git-workflow.md adapted for Superpowers ecosystem | Reason: 统一 git 协作规范 -->

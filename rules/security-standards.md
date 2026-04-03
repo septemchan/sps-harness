@@ -1,6 +1,6 @@
 ## Security Standards
 
-Automated checks (commit-guard hook handles, no manual verification needed):
+Secrets and console.log are auto-checked by commit-guard hook. When the hook is unavailable, verify manually before committing:
 - Hardcoded secrets → commit-guard.js auto-scans on every commit
 - console.log / debugger → commit-guard.js auto-detects on every commit
 
@@ -17,6 +17,6 @@ Store secrets in environment variables or a secret manager. Validate required se
 
 Rotate any secret that may have been exposed immediately, because delayed rotation increases the window of vulnerability.
 
-When a security issue is found: stop current work immediately, run /security-review, fix all CRITICAL issues before resuming.
+When a security issue is found: stop current work immediately, run /security-review, fix all critical-severity issues before resuming.
 
 <!-- Added: 2026-03-30 | Source: ECC security.md adapted for Superpowers ecosystem | Reason: 建立安全实践基线 -->

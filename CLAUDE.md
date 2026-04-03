@@ -20,15 +20,15 @@ Harness Engineering companion plugin for Superpowers. Adds automated quality che
 
 ## Code style
 
-- All hooks: CommonJS (require), never ESM (import)
 - All hooks must wrap logic in try/catch and exit with process.exit(0) — never crash
 - Use hooks/scripts/lib/utils.js for shared functions: inject, prevent, stop, deny, guard, log, detectProjectType, toolExists
-- Hook output goes through inject() / prevent() / stop(), never console.log directly (except via utils functions that format JSON)
 
 ## Gotchas
 
+<important>
 - hooks.json paths must use ${CLAUDE_PLUGIN_ROOT} prefix, not relative paths
 - Hook timeouts: file I/O hooks ≤5s, git hooks ≤10s, typecheck ≤15s
+</important>
 - settings.json deny rules are permission-layer blocking (Claude Code enforces); hooks are script-layer blocking (our code enforces) — different mechanisms
 - readStdin() reads fd 0 for Windows compatibility, not /dev/stdin
 - Quality hooks (auto-format, typecheck, quality-gate) detect project type via detectProjectType() — JS/TS, Python, Go, Rust supported, others silently skipped

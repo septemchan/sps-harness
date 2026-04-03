@@ -38,8 +38,9 @@ A well-structured harness makes Claude more reliable, consistent, and safe. A po
 1. Run the automated check script: `node <skill-path>/scripts/run-checks.js [project-root]`
    - The script checks all 23 items and outputs a JSON report with pass/fail for each check.
    - If the script fails (missing Node.js, permission issues), fall back to manual checks using the dimension definitions below.
-2. Read the JSON output and produce the human-readable report.
+2. Read the JSON output and produce the human-readable report. When a check cannot be verified with certainty (e.g., git log unavailable, script error), report the check as '⚠ unverified' rather than pass or fail, and note the reason.
 3. For dimensions scoring 0, read `references/init-templates.md` and include tailored creation guidance.
+4. Before producing the report, confirm that all 23 checks have a recorded result. If any check has no result, note it as 'not evaluated' rather than omitting it.
 
 ## The 7 Dimensions
 
@@ -129,6 +130,7 @@ Even a well-built harness degrades over time. Rules bloat, contradictions creep 
 
 **Audit mode** (score > 0):
 
+<example title="audit-report">
 ```markdown
 ## Harness Audit Report
 
@@ -147,6 +149,7 @@ Even a well-built harness degrades over time. Rules bloat, contradictions creep 
 2. **[Dimension]**: [specific action to take]
 3. **[Dimension]**: [specific action to take]
 ```
+</example>
 
 Report every individual check result, not just dimension totals.
 
